@@ -1,8 +1,8 @@
 import rasterio
 import numpy as np
 
-input_file = "C:/Users/Nop/OneDrive/เดสก์ท็อป/Works/MINEWORK/ASSIGNMENT/college/Project and Research with Prof/LDD/LDD_Scripts/S2_data/47PQQ_2018-11-30.tif"
-output_path = "C:/Users/Nop/OneDrive/เดสก์ท็อป/Works/MINEWORK/ASSIGNMENT/college/Project and Research with Prof/LDD/LDD_Scripts/S2_data/47PQQ_2018-11-30_ndvi.tif"
+input_file = ""
+output_path = ""
 
 # Open multiband image
 with rasterio.open(input_file) as src:
