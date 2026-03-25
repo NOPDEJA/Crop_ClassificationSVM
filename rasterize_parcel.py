@@ -62,5 +62,5 @@ def rasterize_polygons_to_raster(gdf, value_column, output_raster, resolution=10
 
 if __name__ == "__main__":
     # Example usage
-    gdf = gpd.read_file("C:/Users/Nop/OneDrive/เดสก์ท็อป/Works/MINEWORK/ASSIGNMENT/college/Project and Research with Prof/LDD/LDD_Scripts/Rayong61/LU_RYG_2561.shp")
+    gdf = gpd.read_file(./LU_RYG_2561.shp")
     rasterize_polygons_to_raster(gdf, value_column='LU_ID_L3', output_raster='lu_raster.tif', resolution=10)
