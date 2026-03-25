@@ -5,8 +5,8 @@ import csv
 from scipy.stats import mode as stats_mode
 
 # Input files
-ndvi_file = "C:/Users/Nop/OneDrive/เดสก์ท็อป/Works/MINEWORK/ASSIGNMENT/college/Project and Research with Prof/LDD/LDD_Scripts/S2_data/47PQQ_2018-11-30_ndvi.tif"
-label_file = "C:/Users/Nop/OneDrive/เดสก์ท็อป/Works/MINEWORK/ASSIGNMENT/college/Project and Research with Prof/LDD/LDD_Scripts/label/label_47PQQ.tif"
+ndvi_file = ""
+label_file = ""
 output_csv = "average_ndvi_by_crop.csv"
 
 # Read NDVI
