@@ -36,6 +36,6 @@ def buffer_labels(input_label, output_label, buffer_pixels=3):
     print(f"Buffered label raster saved to: {output_label}")
 
 if __name__ == "__main__":
-    input_label = "C:/Users/Nop/Works/MINEWORK/ASSIGNMENT/college/Project and Research with Prof/LDD/SVM_attempts/label/label_47PQQ.tif"
-    output_label = "C:/Users/Nop/Works/MINEWORK/ASSIGNMENT/college/Project and Research with Prof/LDD/SVM_attempts/label/label_47PQQ_buffered.tif"
+    input_label = ""
+    output_label = ""
     buffer_labels(input_label, output_label, buffer_pixels=3)
