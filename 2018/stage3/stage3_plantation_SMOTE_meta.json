@@ -1,0 +1,31 @@
+{
+  "subclass": "plantation",
+  "subclass_label": 2,
+  "lu_codes_trained": [
+    2302,
+    2303,
+    2405
+  ],
+  "counts": {
+    "train_unique": {
+      "2302": 16800,
+      "2303": 16800,
+      "2405": 500
+    },
+    "train_final": {
+      "2303": 15571,
+      "2302": 15571,
+      "2405": 16800
+    },
+    "test": {
+      "2303": 3600,
+      "2302": 3600,
+      "2405": 108
+    }
+  },
+  "best_params": {
+    "estimator__estimator__svc__C": 10.0,
+    "estimator__estimator__nyst__n_components": 600,
+    "estimator__estimator__nyst__gamma": 0.5
+  }
+}

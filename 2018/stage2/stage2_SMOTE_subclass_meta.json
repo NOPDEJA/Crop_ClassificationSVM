@@ -1,0 +1,76 @@
+{
+  "stage": 2,
+  "subclasses": {
+    "orchards": [
+      2403,
+      2404,
+      2407,
+      2416,
+      2419,
+      2420
+    ],
+    "plantation": [
+      2302,
+      2303,
+      2405
+    ],
+    "field_non_orchard": [
+      2101,
+      2204,
+      2205
+    ],
+    "other_econ": "all remaining economic_crops not in above sets"
+  },
+  "config": {
+    "PER_GROUP_CAP": 24000,
+    "TARGET_PER_GROUP": 6000,
+    "CONDITIONAL_UPSAMPLE": true,
+    "MIN_UPSAMPLE_TRIGGER": 0.67,
+    "UPSAMPLE_SMALL": true,
+    "TUNE_THRESHOLDS": false,
+    "NYST_COMPONENTS": [
+      400,
+      600
+    ],
+    "NYST_GAMMA": [
+      0.5,
+      1.0
+    ],
+    "SVC_C": [
+      0.1,
+      1.0,
+      10.0
+    ]
+  },
+  "counts": {
+    "train_unique": {
+      "2": 16800,
+      "1": 16800,
+      "4": 8885,
+      "3": 16800
+    },
+    "train_final": {
+      "2": 14998,
+      "1": 14693,
+      "4": 16112,
+      "3": 15039
+    },
+    "test": {
+      "4": 1905,
+      "1": 3600,
+      "2": 3600,
+      "3": 3600
+    }
+  },
+  "best_params": {
+    "estimator__estimator__svc__C": 10.0,
+    "estimator__estimator__nyst__n_components": 600,
+    "estimator__estimator__nyst__gamma": 0.5
+  },
+  "thresholds": {
+    "1": null,
+    "2": null,
+    "3": null,
+    "4": null
+  }
+}

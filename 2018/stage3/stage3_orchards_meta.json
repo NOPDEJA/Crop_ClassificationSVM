@@ -1,0 +1,51 @@
+{
+  "subclass": "orchards",
+  "subclass_label": 1,
+  "lu_codes_trained": [
+    2403,
+    2404,
+    2407,
+    2416,
+    2419,
+    2420
+  ],
+  "counts": {
+    "train_unique": {
+      "2416": 14349,
+      "2407": 10565,
+      "2403": 16800,
+      "2419": 5584,
+      "2404": 1896,
+      "2420": 571
+    },
+    "train_final": {
+      "2403": 16800,
+      "2420": 6000,
+      "2416": 14349,
+      "2404": 6000,
+      "2407": 10565,
+      "2419": 6000
+    },
+    "test": {
+      "2407": 2264,
+      "2403": 3600,
+      "2416": 3075,
+      "2404": 406,
+      "2419": 1197,
+      "2420": 123
+    }
+  },
+  "best_params": {
+    "estimator__estimator__svc__C": 10.0,
+    "estimator__estimator__nyst__n_components": 600,
+    "estimator__estimator__nyst__gamma": 0.5
+  },
+  "thresholds": {
+    "2403": null,
+    "2404": null,
+    "2407": null,
+    "2416": null,
+    "2419": null,
+    "2420": null
+  }
+}

@@ -1,0 +1,33 @@
+# Claude Code local session data
+.claude/
+
+# Credentials
+credential.py
+
+# Large data folders
+S1_data/
+S1_processed/
+S1_logs/
+dem/
+indices/
+label/
+
+# Raster outputs
+*.tif
+
+# Large binary model/data outputs
+*.npy
+*.npz
+*.joblib
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Env
+.env
+*.env

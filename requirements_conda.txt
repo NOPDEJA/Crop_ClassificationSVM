@@ -1,0 +1,12 @@
+gdal
+rasterio
+geopandas
+shapely
+pyproj
+fiona
+scikit-learn
+scipy
+pandas
+numpy
+matplotlib
+seaborn
