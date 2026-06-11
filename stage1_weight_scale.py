@@ -61,12 +61,16 @@ N_JOBS = 4
 # Prediction chunk
 PRED_CHUNK = 2_000_000
 
+# Output directory — all artifacts for this run go here
+OUT_DIR = "./runs/s1_dem"
+os.makedirs(OUT_DIR, exist_ok=True)
+
 # Outputs
-OUT_MODEL = "stage1_svm_weight_scale_increased.joblib"
-OUT_THRESH = "stage1_thresholds_svm_weight_scale_increased.json"
-OUT_REPORT = "stage1_report_svm_weight_scale_increased.csv"
-OUT_PRED_NPY = "stage1_svm_weight_scale_increased.npy"
-OUT_PROB_NPY = "stage1_prob_svm_weight_scale_increased.npy"
+OUT_MODEL    = f"{OUT_DIR}/stage1_s1_dem.joblib"
+OUT_THRESH   = f"{OUT_DIR}/stage1_s1_dem_thresholds.json"
+OUT_REPORT   = f"{OUT_DIR}/stage1_s1_dem_report.csv"
+OUT_PRED_NPY = f"{OUT_DIR}/stage1_s1_dem_pred.npy"
+OUT_PROB_NPY = f"{OUT_DIR}/stage1_s1_dem_prob.npy"
 
 # mapping sets
 economic_crops = {2101,2204,2205,2302,2303,2403,2404,2405,2407,2413,2416,2419,2420}
