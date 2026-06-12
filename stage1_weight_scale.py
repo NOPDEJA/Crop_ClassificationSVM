@@ -29,6 +29,7 @@ from sklearn.pipeline import Pipeline
 from sklearn.kernel_approximation import Nystroem
 from sklearn.multiclass import OneVsRestClassifier
 from sklearn.calibration import CalibratedClassifierCV
+from sklearn.impute import SimpleImputer
 from sklearn.metrics import classification_report, confusion_matrix, f1_score
 import pandas as pd
 from sklearn.metrics import ConfusionMatrixDisplay
@@ -52,11 +53,11 @@ CAP_OTHERS = 800_000
 # Pipeline / search settings
 USE_PCA = True
 PCA_NCOMP = 10
-NYST_COMPONENTS_CANDIDATES = [200, 400, 600]
+NYST_COMPONENTS_CANDIDATES = [50, 100, 150]
 NYST_GAMMA_CANDIDATES = [0.5, 1.0, 2.0]
 SVC_C_CANDIDATES = [0.1, 1.0, 10.0]
-N_ITER_SEARCH = 8
-N_JOBS = 4
+N_ITER_SEARCH = 4
+N_JOBS = 1
 
 # Prediction chunk
 PRED_CHUNK = 2_000_000
@@ -196,7 +197,7 @@ def save_report_with_traininfo(report_dict, train_unique_counts, train_final_cou
     print("Saved report:", out_csv)
 
 
-def chunked_predict_and_save(model, npz_path, out_pred=OUT_PRED_NPY, out_prob=OUT_PROB_NPY, chunk_size=PRED_CHUNK):
+def chunked_predict_and_save(model, npz_path, valid_cols=None, out_pred=OUT_PRED_NPY, out_prob=OUT_PROB_NPY, chunk_size=PRED_CHUNK):
     data = np.load(npz_path, allow_pickle=True)
     X_all = data["X"].astype(np.float32)
     n = X_all.shape[0]
@@ -206,6 +207,8 @@ def chunked_predict_and_save(model, npz_path, out_pred=OUT_PRED_NPY, out_prob=OU
     for s in range(0, n, chunk_size):
         e = min(n, s+chunk_size)
         Xc = X_all[s:e]
+        if valid_cols is not None:
+            Xc = Xc[:, valid_cols]
         preds[s:e] = model.predict(Xc).astype(np.uint8)
         probs[s:e, :] = model.predict_proba(Xc).astype(np.float32)
         print(f"  predicted chunk {s}:{e} ({e-s} rows)")
@@ -221,6 +224,18 @@ if __name__ == "__main__":
     print("=== Stage-1 (per-LU sample + superclass rebalance + calibrated SVM) ===")
 
     Xs, ys_codes, ys_super = load_and_sample_per_lu(NPZ)
+
+    # Drop feature columns that are entirely NaN across the sample.
+    # These are S1 acquisitions whose spatial extent has zero overlap with the
+    # labeled area — the imputer has no observed values to learn a mean from,
+    # so those columns must be removed before training and inference.
+    nan_mask = np.all(np.isnan(Xs), axis=0)
+    valid_cols = np.where(~nan_mask)[0]
+    if nan_mask.any():
+        print(f"Dropping {nan_mask.sum()} all-NaN feature columns (no S1 coverage in labeled area)")
+        Xs = Xs[:, valid_cols]
+    np.save(f"{OUT_DIR}/stage1_s1_dem_valid_cols.npy", valid_cols)
+
     # rebalance at super-class level (after per-LU sampling)
     Xc, y_codes_c, y_super_c = rebalance_by_superclass(Xs, ys_codes, ys_super,
                                                       cap_econ=CAP_ECON, cap_water=CAP_WATER,
@@ -259,22 +274,23 @@ if __name__ == "__main__":
         steps.append(('pca', PCA(n_components=PCA_NCOMP, random_state=RANDOM_STATE)))
     steps.append(('nyst', Nystroem(kernel='rbf', random_state=RANDOM_STATE)))
     steps.append(('svc', LinearSVC(class_weight=adjusted_weights,
-                                max_iter=20000,
+                                max_iter=5000,
                                 random_state=RANDOM_STATE)))
 
     # Track final counts (same as before)
     train_final_counts = class_counts
 
     # build pipeline
-    steps = [('scaler', StandardScaler())]
+    steps = [('imputer', SimpleImputer(strategy='mean')),
+             ('scaler', StandardScaler())]
     if USE_PCA:
         steps.append(('pca', PCA(n_components=PCA_NCOMP, random_state=RANDOM_STATE)))
     steps.append(('nyst', Nystroem(kernel='rbf', random_state=RANDOM_STATE)))
-    steps.append(('svc', LinearSVC(class_weight='balanced', max_iter=20000, random_state=RANDOM_STATE)))
+    steps.append(('svc', LinearSVC(class_weight='balanced', max_iter=5000, random_state=RANDOM_STATE)))
     pipe = Pipeline(steps)
 
     ovr = OneVsRestClassifier(pipe)
-    calibrated = CalibratedClassifierCV(estimator=ovr, cv=3, method='sigmoid')
+    calibrated = CalibratedClassifierCV(estimator=ovr, cv=3, method='sigmoid', n_jobs=1)
 
     param_dist = {
         'estimator__estimator__nyst__n_components': NYST_COMPONENTS_CANDIDATES,
@@ -364,5 +380,5 @@ if __name__ == "__main__":
                                label_to_name=label_to_name)
 
     # chunked predict whole dataset & save
-    chunked_predict_and_save(best_clf, NPZ, out_pred=OUT_PRED_NPY, out_prob=OUT_PROB_NPY, chunk_size=PRED_CHUNK)
+    chunked_predict_and_save(best_clf, NPZ, valid_cols=valid_cols, out_pred=OUT_PRED_NPY, out_prob=OUT_PROB_NPY, chunk_size=PRED_CHUNK)
     print("Stage-1 complete.")

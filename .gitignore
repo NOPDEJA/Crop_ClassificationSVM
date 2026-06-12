@@ -31,3 +31,9 @@ __pycache__/
 # Env
 .env
 *.env
+
+# Run logs and diagnostic scripts
+*.log
+*.log.err
+*.err
+test_*.py
