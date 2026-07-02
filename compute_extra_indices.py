@@ -49,8 +49,10 @@ def compute_extra_indices(raster_path, output_dir):
         a = (2.0 * nir + 1.0)
         msavi = (a - np.sqrt(np.maximum(a * a - 8.0 * (nir - red), 0.0))) / 2.0
 
-        # SWIR/NIR ratio
-        swir_nir = safe_div(swir1, nir)
+        # SWIR/NIR ratio — clipped: dark pixels (water/shadow, nir ~ 0) blow
+        # the ratio up to ~1e5, which wrecks StandardScaler downstream.
+        # Real vegetation/soil values sit well below 20.
+        swir_nir = np.clip(safe_div(swir1, nir), 0.0, 20.0)
 
         # SWIR ratio (difference normalized)
         swir_ratio = safe_div((swir1 - swir2), (swir1 + swir2))
