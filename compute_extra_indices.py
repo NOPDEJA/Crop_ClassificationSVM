@@ -64,7 +64,7 @@ def compute_extra_indices(raster_path, output_dir):
 
         base = os.path.splitext(os.path.basename(raster_path))[0]
         for name, arr in indices.items():
-            arr[invalid] = np.nan
+            arr[invalid | ~np.isfinite(arr)] = np.nan
             out_path = os.path.join(output_dir, f"{name}_{base}.tif")
             with rasterio.open(out_path, 'w', **profile) as dst:
                 dst.write(arr, 1)
