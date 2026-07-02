@@ -98,6 +98,10 @@ def download_file(keycloak_token, file_id, file_name):
     if is_zip_file_corrupted(temp_bytes):
         raise RuntimeError(f"Downloaded ZIP is corrupted: {file_name}")
 
+    # seek back to 0 after corruption check — the ZIP test leaves the
+    # pointer at an unknown position (same fix as S1_download.py)
+    temp_bytes.seek(0)
+
     return temp_bytes
 
 
@@ -192,7 +196,9 @@ def aggregation_per_tile(tile_period):
             stacked = np.ma.stack(satellite_data[band_name], axis=0)
             band_median = np.ma.median(stacked, axis=0)
             aggregated_bands.append(band_median)
-        stacked_aggregated_bands = np.stack(aggregated_bands, axis=0)
+        # np.ma.stack keeps the mask; pixels masked in every acquisition
+        # (always cloudy) are filled with 0 and tagged as nodata below
+        stacked_aggregated_bands = np.ma.stack(aggregated_bands, axis=0).filled(0)
         profile = {
             "driver": "GTiff",
             "count": len(satellite_data.keys()),
@@ -200,7 +206,8 @@ def aggregation_per_tile(tile_period):
             "width": raster_meta['width'],
             "height": raster_meta['height'],
             'crs': raster_meta['crs'],
-            'transform': raster_meta['transform']
+            'transform': raster_meta['transform'],
+            'nodata': 0
         }
         write_cogtif(output_path, stacked_aggregated_bands, profile)
     return

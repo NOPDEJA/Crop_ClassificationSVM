@@ -1,0 +1,31 @@
+{
+  "subclass": "field",
+  "subclass_label": 3,
+  "lu_codes_trained": [
+    2101,
+    2204,
+    2205
+  ],
+  "counts": {
+    "train_unique": {
+      "2101": 49000,
+      "2204": 49000,
+      "2205": 49000
+    },
+    "train_final": {
+      "2204": 49000,
+      "2101": 49000,
+      "2205": 49000
+    },
+    "test": {
+      "2205": 10500,
+      "2204": 10500,
+      "2101": 10500
+    }
+  },
+  "best_params": {
+    "estimator__estimator__svc__C": 10.0,
+    "estimator__estimator__nyst__n_components": 150,
+    "estimator__estimator__nyst__gamma": 0.5
+  }
+}

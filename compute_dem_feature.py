@@ -30,7 +30,7 @@ import numpy as np
 import rasterio
 from rasterio.warp import reproject, Resampling, calculate_default_transform
 from rasterio.io import MemoryFile
-from scipy.ndimage import uniform_filter, generic_filter
+from scipy.ndimage import uniform_filter, maximum_filter, minimum_filter
 
 # ── Config ───────────────────────────────────────────────────────────────────
 DEM_PATH    = "./dem/dem_47PQQ.tif"          # your input DEM file
@@ -121,10 +121,8 @@ def compute_roughness(dem: np.ndarray, radius: int = 3) -> np.ndarray:
     Captures fine-scale terrain variability.
     """
     size = 2 * radius + 1
-    def range_func(arr):
-        return arr.max() - arr.min()
-    roughness = generic_filter(dem, function=range_func,
-                               size=size, mode='nearest').astype(np.float32)
+    roughness = (maximum_filter(dem, size=size, mode='nearest')
+                 - minimum_filter(dem, size=size, mode='nearest')).astype(np.float32)
     return roughness
 
 

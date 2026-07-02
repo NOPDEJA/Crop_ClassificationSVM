@@ -55,7 +55,6 @@ SVM_attempts/
 │
 │  ── SVM training (current 3-stage) ─────────────────────────────────────────
 ├── stage1_weight_scale.py      Stage 1: 4-class SVM (econ/water/forest/others)
-├── stage1_weight_scale_boosted_gpu.py  Stage 1 GPU variant
 ├── stage2_weighted.py          Stage 2: subclass within economic crops
 ├── stage3_new_weight.py        Stage 3: per-subclass fine-grained LU_CODE
 ├── stage3_weighted.py          Stage 3 alternate variant
@@ -115,7 +114,7 @@ All features are stored as individual GeoTIFFs in `./indices/`, then stacked by 
 | TPI_dem.tif | Topographic Position Index (ridge = +, valley = −) |
 | ROUGHNESS_dem.tif | Max−min elevation in 3-px window |
 
-### Sentinel-1 SAR features (7 per acquisition date)
+### Sentinel-1 SAR features (6 per acquisition date)
 | Feature | Description |
 |---------|-------------|
 | VV | VV backscatter (dB, clipped to −30…+5) |
@@ -124,7 +123,8 @@ All features are stored as individual GeoTIFFs in `./indices/`, then stacked by 
 | RVI | Radar Vegetation Index = 4VH/(VV+VH), linear domain [0–1] |
 | RFDI | Radar Forest Degradation Index = (VV−VH)/(VV+VH) [−1–1] |
 | DPR | Dual Polarization Ratio = VH/VV |
-| VVVH_DIFF | VV − VH (same as VV_VH_RATIO; kept for compatibility) |
+
+> VVVH_DIFF (an exact duplicate of VV_VH_RATIO) was removed 2026-07-02, and its 18 TIFs were deleted from `indices/`. The current `.npz` and `runs/s1_dem` models were trained *with* those columns — rebuild the `.npz` and retrain from Stage 1 before any new inference from TIFs.
 
 ### Sentinel-2 spectral indices (8 per acquisition date)
 | Feature | Description |
@@ -224,6 +224,7 @@ All features are stored as individual GeoTIFFs in `./indices/`, then stacked by 
 - **Working directory**: all paths in scripts are relative to `SVM_attempts/` root.
 - **Training NPZ**: current pipeline uses `svm_add_data_features_labels.npz` (not the old `svm_features_labels.npz` in `2018/`).
 - **Feature index order**: determined alphabetically by `glob("./indices/*.tif")` in `align_indices_labels.py`. Never reorder files after training; retrain if you do.
+- **S2 composite band order**: `tile_download.py` stacks bands in `sorted()` string order, which puts B11/B12 **before** B8A (`"B11" < "B8A"`). On-disk order: B02,B03,B04,B05,B06,B07,B08,B11,B12,B8A. The `BAND_MAPPING` in `compute_indices.py`/`compute_extra_indices.py` matches this — do not "correct" it to the natural band order.
 - **Chunked processing**: all stages use `PRED_CHUNK = 2_000_000` rows per chunk to avoid OOM.
 - **Calibration**: Stage 1 and 2 models use `CalibratedClassifierCV` (sigmoid) to produce probabilities for threshold tuning.
 - **Threshold tuning**: Stage 1 searches a threshold grid on a held-out validation set per class (econ=1, water=2, forest=4). Thresholds saved as `.json` next to the model.

@@ -34,6 +34,7 @@ import pandas as pd
 from collections import Counter
 from sklearn.model_selection import train_test_split, RandomizedSearchCV
 from sklearn.preprocessing import StandardScaler
+from sklearn.impute import SimpleImputer
 from sklearn.svm import LinearSVC
 from sklearn.pipeline import Pipeline
 from sklearn.kernel_approximation import Nystroem
@@ -44,16 +45,19 @@ from sklearn.metrics import classification_report, confusion_matrix
 # -----------------------
 # Config
 # -----------------------
-NPZ = "./aligned_features/svm_drop_features_labels.npz"
-STAGE1_PRED = "stage1_svm_drop_feature_weight_scale.npy"
-STAGE1_MODEL = "stage1_svm_drop_feature_weight_scale.joblib"
-STAGE2_PRED = "stage2_subclass_weighted_pred.npy"
-STAGE2_MODEL = "stage2_weighted_model2.joblib"
+NPZ = "./aligned_features/svm_add_data_features_labels.npz"
+OUT_DIR = "runs/s1_dem/"
+
+STAGE1_PRED = f"{OUT_DIR}stage1_s1_dem_pred.npy"
+STAGE1_MODEL = f"{OUT_DIR}stage1_s1_dem.joblib"
+VALID_COLS_NPY = f"{OUT_DIR}stage1_s1_dem_valid_cols.npy"
+STAGE2_PRED = f"{OUT_DIR}stage2_s1_dem_pred.npy"
+STAGE2_MODEL = f"{OUT_DIR}stage2_s1_dem_model.joblib"
 WEIGHT_SCALE_FILE = "stage1_feature_weight_scale.npy"  # optional; if present applied to features
 RANDOM_STATE = 42
 
 economic_crops = {2101,2204,2205,2302,2303,2403,2404,2405,2407,2413,2416,2419,2420}
-orchards_codes = {2403, 2404, 2407, 2420, 2416, 2419}
+orchards_codes = {2403, 2404, 2407, 2413, 2416, 2419, 2420}
 plantation_codes = {2302, 2303, 2405}
 field_codes = {2101, 2204, 2205}
 
@@ -79,19 +83,19 @@ SVC_C = [0.1, 1.0, 10.0]
 N_ITER_SEARCH = 8
 N_JOBS = 4
 
-OUT_MODEL_TPL = "stage3_{grp}_weightscale_model.joblib"
-OUT_REPORT_TPL = "stage3_{grp}_weightscale_report.csv"
-OUT_TEST_PROB_TPL = "stage3_{grp}_weightscale_test_prob.npy"
-OUT_TEST_PRED_TPL = "stage3_{grp}_weightscale_test_pred.npy"
-OUT_META_TPL = "stage3_{grp}_weightscale_meta.json"
-OUT_CONF_TPL = "stage3_{grp}_weightscale_confusion_matrix.csv"
-OUT_TOP_META = "stage3_weightscale_meta.json"
+OUT_MODEL_TPL = f"{OUT_DIR}stage3_s1_dem_{{grp}}_model.joblib"
+OUT_REPORT_TPL = f"{OUT_DIR}stage3_s1_dem_{{grp}}_report.csv"
+OUT_TEST_PROB_TPL = f"{OUT_DIR}stage3_s1_dem_{{grp}}_test_prob.npy"
+OUT_TEST_PRED_TPL = f"{OUT_DIR}stage3_s1_dem_{{grp}}_test_pred.npy"
+OUT_META_TPL = f"{OUT_DIR}stage3_s1_dem_{{grp}}_meta.json"
+OUT_CONF_TPL = f"{OUT_DIR}stage3_s1_dem_{{grp}}_confusion_matrix.csv"
+OUT_TOP_META = f"{OUT_DIR}stage3_s1_dem_meta.json"
 
 # -----------------------
 # Helpers
 # -----------------------
 
-def ensure_stage1_pred(npz_path):
+def ensure_stage1_pred(npz_path, valid_cols=None):
     if os.path.exists(STAGE1_PRED):
         print("Loading Stage-1 predictions:", STAGE1_PRED)
         return np.load(STAGE1_PRED)
@@ -101,12 +105,18 @@ def ensure_stage1_pred(npz_path):
     model = joblib.load(STAGE1_MODEL)
     d = np.load(npz_path, allow_pickle=True)
     X_all = d["X"].astype(np.float32)
-    preds = model.predict(X_all).astype(np.uint8)
+    if valid_cols is not None:
+        X_all = X_all[:, valid_cols]
+    preds = np.zeros(X_all.shape[0], dtype=np.uint8)
+    for s in range(0, X_all.shape[0], 2_000_000):
+        e = min(X_all.shape[0], s + 2_000_000)
+        preds[s:e] = model.predict(X_all[s:e]).astype(np.uint8)
+        print(f"  Stage-1 predict chunk {s}:{e}")
     np.save(STAGE1_PRED, preds)
     return preds
 
 
-def ensure_stage2_pred(npz_path, stage1_pred):
+def ensure_stage2_pred(npz_path, stage1_pred, valid_cols=None):
     if os.path.exists(STAGE2_PRED):
         print("Loading Stage-2 predictions:", STAGE2_PRED)
         return np.load(STAGE2_PRED)
@@ -116,6 +126,8 @@ def ensure_stage2_pred(npz_path, stage1_pred):
     model = joblib.load(STAGE2_MODEL)
     d = np.load(npz_path, allow_pickle=True)
     X_all = d["X"].astype(np.float32)
+    if valid_cols is not None:
+        X_all = X_all[:, valid_cols]
     preds = np.zeros(X_all.shape[0], dtype=np.int32)
     mask = (stage1_pred == 1)
     idxs = np.flatnonzero(mask)
@@ -128,9 +140,12 @@ def ensure_stage2_pred(npz_path, stage1_pred):
     return preds
 
 
-def load_Xy(npz_path):
+def load_Xy(npz_path, valid_cols=None):
     d = np.load(npz_path, allow_pickle=True)
-    return d["X"].astype(np.float32), d["y"].astype(np.int32)
+    X = d["X"].astype(np.float32)
+    if valid_cols is not None:
+        X = X[:, valid_cols]
+    return X, d["y"].astype(np.int32)
 
 
 def cap_per_lu(X, y, cap=PER_LU_CAP):
@@ -229,9 +244,13 @@ def save_report(report_dict, train_counts, final_counts, test_counts, out_csv):
 # -----------------------
 if __name__ == "__main__":
     print("=== Stage-3 with weight-scaling (no SMOTE) : start ===")
-    stage1_pred = ensure_stage1_pred(NPZ)
-    stage2_pred = ensure_stage2_pred(NPZ, stage1_pred)
-    X_all, y_all = load_Xy(NPZ)
+    os.makedirs(OUT_DIR, exist_ok=True)
+    valid_cols = np.load(VALID_COLS_NPY) if os.path.exists(VALID_COLS_NPY) else None
+    if valid_cols is not None:
+        print(f"Loaded valid_cols: {valid_cols.size} features (from {VALID_COLS_NPY})")
+    stage1_pred = ensure_stage1_pred(NPZ, valid_cols=valid_cols)
+    stage2_pred = ensure_stage2_pred(NPZ, stage1_pred, valid_cols=valid_cols)
+    X_all, y_all = load_Xy(NPZ, valid_cols=valid_cols)
     econ_mask = (stage1_pred == 1)
     scale_vec = load_weight_scale()
 
@@ -304,9 +323,10 @@ if __name__ == "__main__":
 
         # Build pipeline + RandomizedSearch
         steps = [
+            ('imputer', SimpleImputer(strategy='median')),
             ('scaler', StandardScaler()),
             ('nyst', Nystroem(kernel='rbf', random_state=RANDOM_STATE)),
-            ('svc', LinearSVC(class_weight='balanced', max_iter=20000, random_state=RANDOM_STATE))
+            ('svc', LinearSVC(class_weight='balanced', max_iter=5000, random_state=RANDOM_STATE))
         ]
         pipe = Pipeline(steps)
         ovr = OneVsRestClassifier(pipe)

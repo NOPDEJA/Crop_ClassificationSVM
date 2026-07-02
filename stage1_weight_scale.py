@@ -252,35 +252,10 @@ if __name__ == "__main__":
 
     # Natural class distribution (no SMOTE)
     X_train_bal, y_train_bal = X_train, y_train
-    # --- ADJUSTED WEIGHT SCALING (Option A) ---
-    # Base inverse-frequency weight
     class_counts = Counter(y_train_bal)
-    total = sum(class_counts.values())
-    base_weights = {cls: total / (len(class_counts) * cnt) for cls, cnt in class_counts.items()}
-
-    # Apply ECON boost factor
-    ECON_BOOST = 2.0          # <--- you can tune 1.5–3.0
-    adjusted_weights = base_weights.copy()
-    if 1 in adjusted_weights:
-        adjusted_weights[1] *= ECON_BOOST
-
-    print("Base class weights:", base_weights)
-    print("Adjusted class weights (ECON boosted):", adjusted_weights)
-    print(" (ECON was multiplied by", ECON_BOOST, ")")
-
-    # pass weights to LinearSVC via class_weight parameter
-    steps = [('scaler', StandardScaler())]
-    if USE_PCA:
-        steps.append(('pca', PCA(n_components=PCA_NCOMP, random_state=RANDOM_STATE)))
-    steps.append(('nyst', Nystroem(kernel='rbf', random_state=RANDOM_STATE)))
-    steps.append(('svc', LinearSVC(class_weight=adjusted_weights,
-                                max_iter=5000,
-                                random_state=RANDOM_STATE)))
-
-    # Track final counts (same as before)
     train_final_counts = class_counts
 
-    # build pipeline
+    # build pipeline (class_weight='balanced' — no per-class boost)
     steps = [('imputer', SimpleImputer(strategy='mean')),
              ('scaler', StandardScaler())]
     if USE_PCA:

@@ -1,4 +1,5 @@
 # features_importance_check.py
+import os
 import numpy as np
 from sklearn.inspection import permutation_importance
 from sklearn.metrics import f1_score, make_scorer
@@ -7,9 +8,10 @@ from collections import Counter
 import joblib
 import json
 
-MODEL_FILE = "stage1_weight_scale.joblib"
-NPZ_FILE = "./aligned_features/svm_new_features_labels.npz"
-OUT_PI_JSON = "stage1_features_importance_balanced.json"
+MODEL_FILE = "runs/s1_dem/stage1_s1_dem.joblib"
+NPZ_FILE = "./aligned_features/svm_add_data_features_labels.npz"
+VALID_COLS_NPY = "runs/s1_dem/stage1_s1_dem_valid_cols.npy"
+OUT_PI_JSON = "runs/s1_dem/stage1_s1_dem_features_importance.json"
 
 # === Load model and data ===
 print("Loading model and data...")
@@ -18,6 +20,14 @@ data = np.load(NPZ_FILE)
 X = data["X"].astype(np.float32)
 y = data["y"].astype(np.int32)
 print(f"Loaded: X={X.shape}, y={y.shape}")
+
+# Model was trained on valid_cols-reduced features (all-NaN columns dropped in Stage 1)
+if os.path.exists(VALID_COLS_NPY):
+    valid_cols = np.load(VALID_COLS_NPY)
+    X = X[:, valid_cols]
+    print(f"Applied valid_cols: {valid_cols.size} features")
+else:
+    valid_cols = np.arange(X.shape[1])
 
 # === Filter out invalid labels ===
 mask_valid = (y != 0) & (y != 32767)
@@ -47,12 +57,12 @@ X_bal = np.concatenate(X_bal)
 y_bal = np.concatenate(y_bal)
 print(f"Balanced dataset: {X_bal.shape[0]} samples across {len(valid_classes)} LU_CODEs")
 
-# === Map to superclasses ===
+# === Map to superclasses (must match training: econ=1, water=2, others=3, forest=4) ===
 def map_gt_to_super_local(y_codes):
     economic_crops = {2101,2204,2205,2302,2303,2403,2404,2405,2407,2413,2416,2419,2420}
     water_code = {4101,4102,4103,4201,4202,4203}
     forest_code = {3100,3101,3200,3201,3300,3301,3401,3501}
-    mapped = np.array([1 if c in economic_crops else (2 if c in water_code else (3 if c in forest_code else 4))
+    mapped = np.array([1 if c in economic_crops else (2 if c in water_code else (4 if c in forest_code else 3))
                        for c in y_codes], dtype=np.int32)
     return mapped
 
@@ -82,7 +92,8 @@ res = permutation_importance(
 out = {
     "importances_mean": res.importances_mean.tolist(),
     "importances_std": res.importances_std.tolist(),
-    "n_features": X_val.shape[1]
+    "n_features": X_val.shape[1],
+    "valid_cols": valid_cols.tolist()  # maps feature index -> original column in the NPZ
 }
 with open(OUT_PI_JSON, "w") as f:
     json.dump(out, f, indent=2)

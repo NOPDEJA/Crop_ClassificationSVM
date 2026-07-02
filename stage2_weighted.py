@@ -7,6 +7,7 @@ import pandas as pd
 from collections import Counter
 from sklearn.model_selection import train_test_split, RandomizedSearchCV
 from sklearn.preprocessing import StandardScaler
+from sklearn.impute import SimpleImputer
 from sklearn.svm import LinearSVC
 from sklearn.pipeline import Pipeline
 from sklearn.kernel_approximation import Nystroem
@@ -18,13 +19,16 @@ from sklearn.metrics import classification_report, confusion_matrix, f1_score
 # Config
 # -----------------------
 NPZ = "./aligned_features/svm_add_data_features_labels.npz"
-STAGE1_PRED = "stage1_svm_weight_scale_increased.npy"
-STAGE1_MODEL = "stage1_svm_weight_scale_increased.joblib"
+OUT_DIR = "runs/s1_dem/"
+
+STAGE1_PRED = f"{OUT_DIR}stage1_s1_dem_pred.npy"
+STAGE1_MODEL = f"{OUT_DIR}stage1_s1_dem.joblib"
+VALID_COLS_NPY = f"{OUT_DIR}stage1_s1_dem_valid_cols.npy"
 STAGE1_CHUNK = 2_000_000
 RANDOM_STATE = 42
 
 economic_crops = {2101,2204,2205,2302,2303,2403,2404,2405,2407,2413,2416,2419,2420}
-orchards_codes = {2403, 2404, 2407, 2420, 2416, 2419}
+orchards_codes = {2403, 2404, 2407, 2413, 2416, 2419, 2420}
 plantation_codes = {2302, 2303, 2405}
 field_codes = {2101, 2204, 2205}
 SUBCLASS_LABELS = { "orchards": 1, "plantation": 2, "field": 3, "other_econ": 4 }
@@ -32,28 +36,28 @@ SUBCLASS_LABELS = { "orchards": 1, "plantation": 2, "field": 3, "other_econ": 4 
 MIN_PIXELS_PER_GROUP = 100
 PER_GROUP_CAP = 200000
 
-NYST_COMPONENTS = [400, 600]
+NYST_COMPONENTS = [50, 100, 150]
 NYST_GAMMA = [0.5, 1.0]
 SVC_C = [0.1, 1.0, 10.0]
-N_ITER_SEARCH = 8
-N_JOBS = 4
+N_ITER_SEARCH = 4
+N_JOBS = 1
 
 TUNE_THRESHOLDS = False
 THRESH_GRID = np.linspace(0.2, 0.95, 40)
 
 # Outputs
-OUT_MODEL = "stage2_weighted_increased_model.joblib"
-OUT_MODEL_FULL = "stage2_weighted_increased_model_fulldata.joblib"  # optional final retrain
-OUT_REPORT = "stage2_weighted_increased_report.csv"
-OUT_STATS_LU = "stage2_weighted_increased_indicator_stats_per_lu.csv"
-OUT_STATS_GROUP = "stage2_weighted_increased_indicator_stats_per_group.csv"
-OUT_TEST_PROB = "stage2_weighted_increased_test_prob.npy"
-OUT_TEST_PRED = "stage2_weighted_increased_test_pred.npy"
-OUT_CONF_CSV = "stage2_weighted_increased_confusion_matrix.csv"
-OUT_META_JSON = "stage2_weighted_increased_meta.json"
+OUT_MODEL = f"{OUT_DIR}stage2_s1_dem_model.joblib"
+OUT_MODEL_FULL = f"{OUT_DIR}stage2_s1_dem_model_fulldata.joblib"
+OUT_REPORT = f"{OUT_DIR}stage2_s1_dem_report.csv"
+OUT_STATS_LU = f"{OUT_DIR}stage2_s1_dem_stats_per_lu.csv"
+OUT_STATS_GROUP = f"{OUT_DIR}stage2_s1_dem_stats_per_group.csv"
+OUT_TEST_PROB = f"{OUT_DIR}stage2_s1_dem_test_prob.npy"
+OUT_TEST_PRED = f"{OUT_DIR}stage2_s1_dem_test_pred.npy"
+OUT_CONF_CSV = f"{OUT_DIR}stage2_s1_dem_confusion_matrix.csv"
+OUT_META_JSON = f"{OUT_DIR}stage2_s1_dem_meta.json"
 
 # full-dataset predictions filename (for Stage-3)
-STAGE2_PRED = "stage2_weighted_increased.npy"
+STAGE2_PRED = f"{OUT_DIR}stage2_s1_dem_pred.npy"
 
 # controls
 RETRAIN_ON_FULL = False   # set True to retrain final model on uncapped full data (may be heavy)
@@ -63,7 +67,7 @@ PRED_CHUNK = 2_000_000    # chunk size for full-dataset predictions
 # -----------------------
 # Helper Functions
 # -----------------------
-def ensure_stage1_pred(npz_path, pred_npy=STAGE1_PRED, model_path=STAGE1_MODEL, chunk_size=STAGE1_CHUNK):
+def ensure_stage1_pred(npz_path, pred_npy=STAGE1_PRED, model_path=STAGE1_MODEL, chunk_size=STAGE1_CHUNK, valid_cols=None):
     if os.path.exists(pred_npy):
         print("Found Stage-1 predictions:", pred_npy)
         return np.load(pred_npy)
@@ -73,6 +77,8 @@ def ensure_stage1_pred(npz_path, pred_npy=STAGE1_PRED, model_path=STAGE1_MODEL, 
     model = joblib.load(model_path)
     data = np.load(npz_path, allow_pickle=True)
     X_all = data["X"].astype(np.float32)
+    if valid_cols is not None:
+        X_all = X_all[:, valid_cols]
     n = X_all.shape[0]
     preds = np.zeros(n, dtype=np.uint8)
     for s in range(0, n, chunk_size):
@@ -83,9 +89,12 @@ def ensure_stage1_pred(npz_path, pred_npy=STAGE1_PRED, model_path=STAGE1_MODEL, 
     print("Saved Stage-1 predictions to", pred_npy)
     return preds
 
-def load_Xy(npz_path):
+def load_Xy(npz_path, valid_cols=None):
     d = np.load(npz_path, allow_pickle=True)
-    return d["X"].astype(np.float32), d["y"].astype(np.int32)
+    X = d["X"].astype(np.float32)
+    if valid_cols is not None:
+        X = X[:, valid_cols]
+    return X, d["y"].astype(np.int32)
 
 def map_econ_to_subclass_array(y_lu_codes):
     mapped = np.full_like(y_lu_codes, fill_value=SUBCLASS_LABELS["other_econ"], dtype=np.int32)
@@ -161,10 +170,12 @@ def save_confusion_csv(cm, classes, path):
     cm_df.to_csv(path, encoding="utf-8-sig")
     print("Saved confusion matrix:", path)
 
-def save_full_stage2_predictions(model, npz_path, stage1_pred, out_npy=STAGE2_PRED, chunk_size=PRED_CHUNK):
+def save_full_stage2_predictions(model, npz_path, stage1_pred, valid_cols, out_npy=STAGE2_PRED, chunk_size=PRED_CHUNK):
     """Predict stage-2 subclass for entire dataset aligned to NPZ rows and save as .npy."""
     data = np.load(npz_path, allow_pickle=True)
     X_all = data["X"].astype(np.float32)
+    if valid_cols is not None:
+        X_all = X_all[:, valid_cols]
     n = X_all.shape[0]
     preds = np.zeros(n, dtype=np.int32)  # default 0 for non-econ
     econ_idxs = np.flatnonzero(stage1_pred == 1)
@@ -183,8 +194,12 @@ def save_full_stage2_predictions(model, npz_path, stage1_pred, out_npy=STAGE2_PR
 # -----------------------
 if __name__ == "__main__":
     print("=== Stage-2 (weighted subclass classifier) ===")
-    stage1_pred = ensure_stage1_pred(NPZ, STAGE1_PRED, STAGE1_MODEL)
-    X_all, y_all = load_Xy(NPZ)
+    os.makedirs(OUT_DIR, exist_ok=True)
+    valid_cols = np.load(VALID_COLS_NPY) if os.path.exists(VALID_COLS_NPY) else None
+    if valid_cols is not None:
+        print(f"Loaded valid_cols: {valid_cols.size} features (from {VALID_COLS_NPY})")
+    stage1_pred = ensure_stage1_pred(NPZ, STAGE1_PRED, STAGE1_MODEL, valid_cols=valid_cols)
+    X_all, y_all = load_Xy(NPZ, valid_cols=valid_cols)
 
     # Filter Stage-1 economic
     mask_stage1 = (stage1_pred == 1)
@@ -221,9 +236,10 @@ if __name__ == "__main__":
 
     # --- Weighted SVM pipeline ---
     steps = [
+        ('imputer', SimpleImputer(strategy='median')),
         ('scaler', StandardScaler()),
         ('nyst', Nystroem(kernel='rbf', random_state=RANDOM_STATE)),
-        ('svc', LinearSVC(class_weight='balanced', max_iter=20000, random_state=RANDOM_STATE))
+        ('svc', LinearSVC(class_weight='balanced', max_iter=5000, random_state=RANDOM_STATE))
     ]
     pipe = Pipeline(steps)
     ovr = OneVsRestClassifier(pipe)
@@ -249,7 +265,7 @@ if __name__ == "__main__":
     # Optionally save full dataset predictions (for Stage-3)
     if SAVE_FULL_PRED:
         try:
-            save_full_stage2_predictions(best_clf, NPZ, stage1_pred, out_npy=STAGE2_PRED, chunk_size=PRED_CHUNK)
+            save_full_stage2_predictions(best_clf, NPZ, stage1_pred, valid_cols, out_npy=STAGE2_PRED, chunk_size=PRED_CHUNK)
         except Exception as e:
             print("Warning: failed to save full Stage-2 predictions:", e)
 
@@ -293,7 +309,7 @@ if __name__ == "__main__":
         pipe_full = Pipeline([
             ('scaler', StandardScaler()),
             ('nyst', Nystroem(kernel='rbf', random_state=RANDOM_STATE)),
-            ('svc', LinearSVC(class_weight='balanced', max_iter=20000, random_state=RANDOM_STATE))
+            ('svc', LinearSVC(class_weight='balanced', max_iter=5000, random_state=RANDOM_STATE))
         ])
         ovr_full = OneVsRestClassifier(pipe_full)
         clf_full = CalibratedClassifierCV(estimator=ovr_full, cv=3, method='sigmoid')

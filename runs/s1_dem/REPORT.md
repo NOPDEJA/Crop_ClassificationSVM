@@ -46,6 +46,8 @@ The two models differ in multiple ways:
 
 The S2-only model was evaluated on ~22× fewer pixels, which makes its metrics less robust. The DEM+S1 evaluation is more reliable statistically.
 
+> **Baseline caveat (found 2026-07-02):** the Phase 1 S2-only features BSI, NDBI, SWIR_NIR and SWIR_RATIO were computed with swapped bands — the composite's band order (sorted string order: …B08, B11, B12, B8A) did not match the index scripts' assumed order (…B08, B8A, B11, B12), so "SWIR1" actually read B12 and "SWIR2" read B8A. NDVI/EVI/NDWI/MSAVI were unaffected. The S2-only baseline is therefore weaker than a correctly-computed S2 model would be. Fixed in `compute_indices.py` / `compute_extra_indices.py` for future runs.
+
 ### 2. Forest is the standout win (F1 = 0.816)
 
 The DEM+S1 model cleanly separates forest from non-forest — terrain and SAR backscatter strongly distinguish closed-canopy forest from agricultural land. The S2-only model could not do this (forest was lumped into "others").
@@ -59,7 +61,9 @@ The large drop is structural, not a model failure:
 
 ### 4. Econ recall improved (0.682 → 0.747) at the cost of precision (0.705 → 0.619)
 
-The ECON class weight boost (×2.0) and low threshold (0.4) aggressively recover economic crop pixels. Good for recall-heavy applications (finding where crops are), but generates more false positives.
+Balanced class weights and the low probability threshold (0.4) recover more economic crop pixels. Good for recall-heavy applications (finding where crops are), but generates more false positives.
+
+> **Correction (2026-07-02):** an earlier version of this report claimed an ECON class-weight boost of ×2.0 was applied. Code review found that block was dead code — the trained model used plain `class_weight='balanced'`. The boost code has been removed from `stage1_weight_scale.py`.
 
 ### 5. Water precision jumped to 0.922 (SAR is highly discriminative for water)
 
@@ -80,7 +84,7 @@ The threshold grid searched 0.4–0.95. Every class landed at 0.4 (the minimum),
 | Train set | 2,030,000 pixels (from 2.9M rebalanced) |
 | Val / Test | 435,000 / 435,000 |
 | Class caps | econ=1M, others=800K, forest=600K, water=500K |
-| ECON weight boost | ×2.0 |
+| Class weights | `balanced` (no ECON boost — see correction in Observation 4) |
 | Best Nystroem n_components | 150 |
 | Best gamma | 0.5 |
 | Best C | 10.0 |

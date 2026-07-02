@@ -7,7 +7,8 @@ Sentinel-1 GRD GeoTIFFs (output of s1_preprocess_snap.py).
 Processes in blocks to avoid memory errors on large tiles.
 
 Features computed per file:
-  VV, VH, VV_VH_RATIO, RVI, RFDI, DPR, VVVH_DIFF
+  VV, VH, VV_VH_RATIO, RVI, RFDI, DPR
+(VVVH_DIFF was removed — it was an exact duplicate of VV_VH_RATIO)
 """
 
 import os
@@ -26,13 +27,13 @@ NODATA_DB   = -9999.0
 DB_FLOOR    = -30.0
 DB_CEIL     = 5.0
 BLOCK_ROWS  = 512        # number of rows per processing block — lower = less RAM
-                         # 512 rows × 28000 cols × 7 features ≈ 400 MB peak
+                         # 512 rows × 28000 cols × 6 features ≈ 350 MB peak
                          # reduce to 256 if you still get memory errors
 # ─────────────────────────────────────────────────────────────────────────────
 
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 
-FEATURE_NAMES = ["VV", "VH", "VV_VH_RATIO", "RVI", "RFDI", "DPR", "VVVH_DIFF"]
+FEATURE_NAMES = ["VV", "VH", "VV_VH_RATIO", "RVI", "RFDI", "DPR"]
 
 
 def db_to_linear(arr):
@@ -73,7 +74,6 @@ def compute_block(vv_db, vh_db):
 
     # DPR = VH/VV — linear domain
     features["DPR"]      = safe_div(vh_lin, vv_lin, fill=0.0).astype(np.float32)
-    features["VVVH_DIFF"]= (vv_db - vh_db).astype(np.float32)
 
     # Free intermediate arrays immediately
     del vv_lin, vh_lin
