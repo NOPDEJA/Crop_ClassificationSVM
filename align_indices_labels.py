@@ -53,8 +53,11 @@ if __name__ == "__main__":
 
     y = y_flat[mask]
 
-    out_path = os.path.join(OUTPUT_FOLDER, "svm_add_data_features_labels.npz")
-    np.savez(out_path, X=X, y=y)
+    # feature_names records the column order — needed for feature-subset
+    # ablations (e.g. S2-only) and to survive files being added to ./indices
+    feature_names = np.array([os.path.basename(f) for f in index_files])
+    out_path = os.path.join(OUTPUT_FOLDER, "svm_dem_s1_s2_features_labels.npz")
+    np.savez(out_path, X=X, y=y, feature_names=feature_names)
     print(f"\nSaved to {out_path}")
     print(f"X shape: {X.shape}  (pixels x features)")
     print(f"y unique LU codes ({len(np.unique(y))}): {np.unique(y)}")
