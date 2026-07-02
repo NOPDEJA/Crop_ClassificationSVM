@@ -215,9 +215,16 @@ def aggregation_per_tile(tile_period):
 
 if __name__ == "__main__":
 
-    # Intialize the parameters
+    # Intialize the parameters — same five monthly windows as the Phase 1
+    # composites (2018/S2_data) so features stay comparable
     tiles = ['47PQQ']
-    dates = [('2018-04-01', '2018-04-30')]
+    dates = [
+        ('2018-03-01', '2018-03-31'),
+        ('2018-04-01', '2018-04-30'),
+        ('2018-10-01', '2018-10-31'),
+        ('2018-11-01', '2018-11-30'),
+        ('2018-12-01', '2018-12-31'),
+    ]
 
     tile_dates = list(product(tiles, dates))
 
