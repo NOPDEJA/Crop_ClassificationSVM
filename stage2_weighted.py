@@ -19,11 +19,12 @@ from sklearn.metrics import classification_report, confusion_matrix, f1_score
 # Config
 # -----------------------
 NPZ = "./aligned_features/svm_dem_s1_s2_features_labels.npz"
-OUT_DIR = "runs/dem_s1_s2/"
+STAGE1_DIR = "runs/dem_s1_s2/"   # where Stage-1 routing artifacts live
+OUT_DIR = "runs/exp_gamma_scale/"  # this run's outputs
 
-STAGE1_PRED = f"{OUT_DIR}stage1_dem_s1_s2_pred.npy"
-STAGE1_MODEL = f"{OUT_DIR}stage1_dem_s1_s2.joblib"
-VALID_COLS_NPY = f"{OUT_DIR}stage1_dem_s1_s2_valid_cols.npy"
+STAGE1_PRED = f"{STAGE1_DIR}stage1_dem_s1_s2_pred.npy"
+STAGE1_MODEL = f"{STAGE1_DIR}stage1_dem_s1_s2.joblib"
+VALID_COLS_NPY = f"{STAGE1_DIR}stage1_dem_s1_s2_valid_cols.npy"
 STAGE1_CHUNK = 2_000_000
 RANDOM_STATE = 42
 
@@ -37,9 +38,11 @@ MIN_PIXELS_PER_GROUP = 100
 PER_GROUP_CAP = 200000
 
 NYST_COMPONENTS = [50, 100, 150]
-NYST_GAMMA = [0.5, 1.0]
+# gamma-scale experiment: conventional scale for standardized d-dim data is
+# ~1/n_features (None = 1/134 here); previous grid {0.5, 1.0} was ~100x above it
+NYST_GAMMA = [None, 0.01, 0.05]
 SVC_C = [0.1, 1.0, 10.0]
-N_ITER_SEARCH = 4
+N_ITER_SEARCH = 6
 N_JOBS = 1
 
 TUNE_THRESHOLDS = False
@@ -61,7 +64,7 @@ STAGE2_PRED = f"{OUT_DIR}stage2_dem_s1_s2_pred.npy"
 
 # controls
 RETRAIN_ON_FULL = False   # set True to retrain final model on uncapped full data (may be heavy)
-SAVE_FULL_PRED = True     # save full-length stage2_subclass_pred.npy for Stage-3
+SAVE_FULL_PRED = False    # experiment run: skip full-dataset predictions (set True for pipeline runs)
 PRED_CHUNK = 2_000_000    # chunk size for full-dataset predictions
 
 # -----------------------
