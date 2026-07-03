@@ -53,17 +53,20 @@ CAP_OTHERS = 800_000
 # Pipeline / search settings
 USE_PCA = True
 PCA_NCOMP = 10
-NYST_COMPONENTS_CANDIDATES = [50, 100, 150]
-NYST_GAMMA_CANDIDATES = [0.5, 1.0, 2.0]
-SVC_C_CANDIDATES = [0.1, 1.0, 10.0]
-N_ITER_SEARCH = 4
+NYST_COMPONENTS_CANDIDATES = [150, 250]
+# corrected kernel scale: PCA components carry large variance, so the
+# appropriate gamma is far below the old {0.5, 1.0, 2.0} grid.
+# None = 1/n_features (0.1 for 10 PCA dims).
+NYST_GAMMA_CANDIDATES = [None, 0.005, 0.02]
+SVC_C_CANDIDATES = [1.0, 10.0]
+N_ITER_SEARCH = 5
 N_JOBS = 1
 
 # Prediction chunk
 PRED_CHUNK = 2_000_000
 
 # Output directory — all artifacts for this run go here
-OUT_DIR = "./runs/dem_s1_s2"
+OUT_DIR = "./runs/dem_s1_s2_v2"
 os.makedirs(OUT_DIR, exist_ok=True)
 
 # Outputs
