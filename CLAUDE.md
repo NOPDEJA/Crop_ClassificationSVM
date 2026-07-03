@@ -289,3 +289,11 @@ For multi-step tasks, state a brief plan:
 2. [Step] → verify: [check]
 3. [Step] → verify: [check]
 ```
+
+### 5. Session & Token Hygiene
+
+**Cost comes from context size per turn, not from idle time.** Leaving a session open costs nothing; every message re-sends the whole conversation, so long sessions get expensive per turn.
+
+- **Keep sessions task-scoped.** Finished a task or switching to something unrelated → `/clear` and start fresh. This project has a populated auto-memory (`MEMORY.md` + memory files), so a fresh session rehydrates the important state (run status, past diagnoses, feedback) automatically.
+- **Use `/compact` only to continue the *same* long task** (e.g. babysitting a multi-hour training run) with less overhead. Don't `/compact` *and* start a new session — the new session discards the compacted history anyway.
+- **Lean on memory, not long chats.** Persist durable project state (experiment results, diagnoses, queued next steps) to the memory files so `/clear` is cheap and safe between training runs.

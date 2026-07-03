@@ -1,5 +1,6 @@
-# Claude Code local session data
-.claude/
+# Claude Code local session data (skills are tracked and shared)
+.claude/*
+!.claude/skills/
 
 # Credentials
 credential.py
