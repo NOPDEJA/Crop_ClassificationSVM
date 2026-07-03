@@ -44,7 +44,7 @@ from sklearn.metrics import classification_report, confusion_matrix
 # Config
 # -----------------------
 NPZ = "./aligned_features/svm_dem_s1_s2_features_labels.npz"
-OUT_DIR = "runs/dem_s1_s2/"
+OUT_DIR = "runs/dem_s1_s2_v2/"
 
 STAGE1_PRED = f"{OUT_DIR}stage1_dem_s1_s2_pred.npy"
 STAGE1_MODEL = f"{OUT_DIR}stage1_dem_s1_s2.joblib"
@@ -76,9 +76,10 @@ CONDITIONAL_UPSAMPLE = True
 MIN_UPSAMPLE_TRIGGER = 0.67
 
 NYST_COMPONENTS = [50, 100, 150]
-NYST_GAMMA = [0.5, 1.0]
+# corrected kernel scale (see runs/exp_gamma_scale): None = 1/n_features
+NYST_GAMMA = [None, 0.01, 0.05]
 SVC_C = [0.1, 1.0, 10.0]
-N_ITER_SEARCH = 4
+N_ITER_SEARCH = 6
 N_JOBS = 1
 
 OUT_MODEL_TPL = f"{OUT_DIR}stage3_dem_s1_s2_{{grp}}_model.joblib"

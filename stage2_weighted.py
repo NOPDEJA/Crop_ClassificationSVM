@@ -19,8 +19,8 @@ from sklearn.metrics import classification_report, confusion_matrix, f1_score
 # Config
 # -----------------------
 NPZ = "./aligned_features/svm_dem_s1_s2_features_labels.npz"
-STAGE1_DIR = "runs/dem_s1_s2/"   # where Stage-1 routing artifacts live
-OUT_DIR = "runs/exp_gamma_scale/"  # this run's outputs
+STAGE1_DIR = "runs/dem_s1_s2_v2/"   # where Stage-1 routing artifacts live
+OUT_DIR = "runs/dem_s1_s2_v2/"      # this run's outputs
 
 STAGE1_PRED = f"{STAGE1_DIR}stage1_dem_s1_s2_pred.npy"
 STAGE1_MODEL = f"{STAGE1_DIR}stage1_dem_s1_s2.joblib"
@@ -64,7 +64,7 @@ STAGE2_PRED = f"{OUT_DIR}stage2_dem_s1_s2_pred.npy"
 
 # controls
 RETRAIN_ON_FULL = False   # set True to retrain final model on uncapped full data (may be heavy)
-SAVE_FULL_PRED = False    # experiment run: skip full-dataset predictions (set True for pipeline runs)
+SAVE_FULL_PRED = True     # save full-length stage2 predictions for Stage-3
 PRED_CHUNK = 2_000_000    # chunk size for full-dataset predictions
 
 # -----------------------
