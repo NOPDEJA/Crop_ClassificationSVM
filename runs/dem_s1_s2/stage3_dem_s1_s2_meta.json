@@ -1,0 +1,57 @@
+{
+  "stage": 3,
+  "trained_subclasses": {
+    "orchards": {
+      "label": 1,
+      "lu_codes_trained": [
+        2403,
+        2404,
+        2407,
+        2413,
+        2416,
+        2419
+      ],
+      "model": "runs/dem_s1_s2/stage3_dem_s1_s2_orchards_model.joblib",
+      "report": "runs/dem_s1_s2/stage3_dem_s1_s2_orchards_report.csv",
+      "test_prob": "runs/dem_s1_s2/stage3_dem_s1_s2_orchards_test_prob.npy",
+      "test_pred": "runs/dem_s1_s2/stage3_dem_s1_s2_orchards_test_pred.npy",
+      "confusion_matrix": "runs/dem_s1_s2/stage3_dem_s1_s2_orchards_confusion_matrix.csv",
+      "meta": "runs/dem_s1_s2/stage3_dem_s1_s2_orchards_meta.json"
+    },
+    "plantation": {
+      "label": 2,
+      "lu_codes_trained": [
+        2302,
+        2303
+      ],
+      "model": "runs/dem_s1_s2/stage3_dem_s1_s2_plantation_model.joblib",
+      "report": "runs/dem_s1_s2/stage3_dem_s1_s2_plantation_report.csv",
+      "test_prob": "runs/dem_s1_s2/stage3_dem_s1_s2_plantation_test_prob.npy",
+      "test_pred": "runs/dem_s1_s2/stage3_dem_s1_s2_plantation_test_pred.npy",
+      "confusion_matrix": "runs/dem_s1_s2/stage3_dem_s1_s2_plantation_confusion_matrix.csv",
+      "meta": "runs/dem_s1_s2/stage3_dem_s1_s2_plantation_meta.json"
+    },
+    "field": {
+      "label": 3,
+      "lu_codes_trained": [
+        2101,
+        2204,
+        2205
+      ],
+      "model": "runs/dem_s1_s2/stage3_dem_s1_s2_field_model.joblib",
+      "report": "runs/dem_s1_s2/stage3_dem_s1_s2_field_report.csv",
+      "test_prob": "runs/dem_s1_s2/stage3_dem_s1_s2_field_test_prob.npy",
+      "test_pred": "runs/dem_s1_s2/stage3_dem_s1_s2_field_test_pred.npy",
+      "confusion_matrix": "runs/dem_s1_s2/stage3_dem_s1_s2_field_confusion_matrix.csv",
+      "meta": "runs/dem_s1_s2/stage3_dem_s1_s2_field_meta.json"
+    }
+  },
+  "config": {
+    "MIN_PIXELS_PER_LU": 100,
+    "PER_LU_CAP": 70000,
+    "TARGET_PER_LU": 20000,
+    "MIN_TOTAL_SAMPLES": 10000,
+    "UPSAMPLE_SMALL": true,
+    "CONDITIONAL_UPSAMPLE": true
+  }
+}

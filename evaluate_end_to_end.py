@@ -13,7 +13,7 @@ Pipeline composition:
   stage1_pred == 1, stage2_pred == g   -> final = stage3 model g's LU_CODE
   stage2_pred == 4 (other_econ)        -> final = 0 (no Stage-3 model exists)
 
-Outputs (in runs/s1_dem/):
+Outputs (in runs/dem_s1_s2/):
   end_to_end_lu_pred.npy   final LU_CODE per NPZ row (int16, 0 = none)
   end_to_end_report.csv    per-LU precision/recall/F1, end-to-end
   end_to_end_summary.csv   subclass-level rollup + overall stats
@@ -28,13 +28,13 @@ from sklearn.metrics import classification_report
 # -----------------------
 # Config
 # -----------------------
-NPZ = "./aligned_features/svm_add_data_features_labels.npz"
-OUT_DIR = "runs/s1_dem/"
+NPZ = "./aligned_features/svm_dem_s1_s2_features_labels.npz"
+OUT_DIR = "runs/dem_s1_s2/"
 
-STAGE1_PRED = f"{OUT_DIR}stage1_s1_dem_pred.npy"
-STAGE2_PRED = f"{OUT_DIR}stage2_s1_dem_pred.npy"
-VALID_COLS_NPY = f"{OUT_DIR}stage1_s1_dem_valid_cols.npy"
-STAGE3_MODEL_TPL = f"{OUT_DIR}stage3_s1_dem_{{grp}}_model.joblib"
+STAGE1_PRED = f"{OUT_DIR}stage1_dem_s1_s2_pred.npy"
+STAGE2_PRED = f"{OUT_DIR}stage2_dem_s1_s2_pred.npy"
+VALID_COLS_NPY = f"{OUT_DIR}stage1_dem_s1_s2_valid_cols.npy"
+STAGE3_MODEL_TPL = f"{OUT_DIR}stage3_dem_s1_s2_{{grp}}_model.joblib"
 
 OUT_PRED = f"{OUT_DIR}end_to_end_lu_pred.npy"
 OUT_REPORT = f"{OUT_DIR}end_to_end_report.csv"
