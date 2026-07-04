@@ -1,0 +1,59 @@
+{
+  "stage": 3,
+  "trained_subclasses": {
+    "orchards": {
+      "label": 1,
+      "lu_codes_trained": [
+        2403,
+        2404,
+        2407,
+        2413,
+        2416,
+        2419,
+        2420
+      ],
+      "model": "runs/s1_dem_v2/stage3_s1_dem_orchards_model.joblib",
+      "report": "runs/s1_dem_v2/stage3_s1_dem_orchards_report.csv",
+      "test_prob": "runs/s1_dem_v2/stage3_s1_dem_orchards_test_prob.npy",
+      "test_pred": "runs/s1_dem_v2/stage3_s1_dem_orchards_test_pred.npy",
+      "confusion_matrix": "runs/s1_dem_v2/stage3_s1_dem_orchards_confusion_matrix.csv",
+      "meta": "runs/s1_dem_v2/stage3_s1_dem_orchards_meta.json"
+    },
+    "plantation": {
+      "label": 2,
+      "lu_codes_trained": [
+        2302,
+        2303,
+        2405
+      ],
+      "model": "runs/s1_dem_v2/stage3_s1_dem_plantation_model.joblib",
+      "report": "runs/s1_dem_v2/stage3_s1_dem_plantation_report.csv",
+      "test_prob": "runs/s1_dem_v2/stage3_s1_dem_plantation_test_prob.npy",
+      "test_pred": "runs/s1_dem_v2/stage3_s1_dem_plantation_test_pred.npy",
+      "confusion_matrix": "runs/s1_dem_v2/stage3_s1_dem_plantation_confusion_matrix.csv",
+      "meta": "runs/s1_dem_v2/stage3_s1_dem_plantation_meta.json"
+    },
+    "field": {
+      "label": 3,
+      "lu_codes_trained": [
+        2101,
+        2204,
+        2205
+      ],
+      "model": "runs/s1_dem_v2/stage3_s1_dem_field_model.joblib",
+      "report": "runs/s1_dem_v2/stage3_s1_dem_field_report.csv",
+      "test_prob": "runs/s1_dem_v2/stage3_s1_dem_field_test_prob.npy",
+      "test_pred": "runs/s1_dem_v2/stage3_s1_dem_field_test_pred.npy",
+      "confusion_matrix": "runs/s1_dem_v2/stage3_s1_dem_field_confusion_matrix.csv",
+      "meta": "runs/s1_dem_v2/stage3_s1_dem_field_meta.json"
+    }
+  },
+  "config": {
+    "MIN_PIXELS_PER_LU": 100,
+    "PER_LU_CAP": 70000,
+    "TARGET_PER_LU": 20000,
+    "MIN_TOTAL_SAMPLES": 10000,
+    "UPSAMPLE_SMALL": true,
+    "CONDITIONAL_UPSAMPLE": true
+  }
+}

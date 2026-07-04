@@ -1,0 +1,36 @@
+{
+  "stage": 2,
+  "strategy": "class_weight_balanced (no SMOTE)",
+  "subclasses": {
+    "orchards": [
+      2403,
+      2404,
+      2407,
+      2413,
+      2416,
+      2419,
+      2420
+    ],
+    "plantation": [
+      2302,
+      2303,
+      2405
+    ],
+    "field_non_orchard": [
+      2101,
+      2204,
+      2205
+    ],
+    "other_econ": "remaining econ LU codes"
+  },
+  "params": {
+    "estimator__estimator__svc__C": 10.0,
+    "estimator__estimator__nyst__n_components": 150,
+    "estimator__estimator__nyst__gamma": null
+  },
+  "counts": {
+    "2": 10051259,
+    "1": 457531,
+    "3": 1368619
+  }
+}

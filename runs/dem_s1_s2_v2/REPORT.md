@@ -1,7 +1,7 @@
 # Corrected-Gamma v2 Chain — Interim Results (DEM+S1+S2)
 
-**Run date:** 2026-07-04
-**Status:** DEM+S1+S2 v2 chain (Stages 1–3) complete. S1+DEM v2 chain in progress (Stage 1 running).
+**Run date:** 2026-07-04 to 2026-07-05
+**Status:** Both v2 chains (DEM+S1+S2 and S1+DEM-only) complete, all 3 stages each, plus end-to-end evaluation. Final answer below.
 **Feature matrix:** `svm_dem_s1_s2_features_labels.npz` — same as the v1 combined run (134 used features after dropping 19 all-NaN columns).
 **Config change from v1:** Nystroem `gamma` grid corrected from the off-scale `{0.5, 1.0, 2.0}` to `{None, 0.005, 0.02}` (≈1/n_features), `n_components` ceiling raised to `{150, 250}`. See `[[combined-run-kernel-dilution]]` memory for the full diagnosis. Everything else (seeds, caps, splits) is unchanged from v1.
 
@@ -75,9 +75,84 @@ Both v1 baselines achieved their higher *accuracy* by nearly always predicting D
 
 The v1 combined run's conclusion — "S2 indices make things worse" — does not hold once the gamma/capacity grid is corrected. Every stage and nearly every class improves over both the broken-gamma combined run and the original pre-S2 (DEM+S1-only) baseline. This is strong evidence for the kernel-dilution diagnosis: the problem was never the S2 features themselves, it was RBF gamma being ~100x off-scale for the data's dimensionality.
 
-## Open question: does S2 add value beyond the gamma fix?
+## Final answer: yes, S2 indices genuinely help — decisively
 
-This report only establishes that *fixing gamma* fixed the regression. It does not yet answer whether adding S2 indices gives a real lift **over an equally-fixed DEM+S1-only run** — the v1 s1_dem baseline above still used the broken gamma grid too, so it's not a fair comparison. The `s1_dem_v2` chain (DEM+S1 only, same corrected gamma grids, currently running) exists specifically to answer that. Once it completes, this report will be updated with a genuine v2-vs-v2 comparison and an end-to-end econ-recall figure.
+The `s1_dem_v2` chain (DEM+S1 only, `aligned_features/svm_add_data_features_labels.npz`, 109 features, same corrected gamma grids as above) is now complete, giving a genuine apples-to-apples v2-vs-v2 comparison. **S2 wins every single metric, at every stage, for every class, with no exceptions.**
+
+### Stage 1
+
+| Metric | s1_dem_v2 (no S2) | dem_s1_s2_v2 (+S2) |
+|---|---|---|
+| Accuracy | 0.733 | **0.766** |
+| econ F1 | 0.725 | **0.755** |
+| water F1 | 0.830 | **0.875** |
+| others F1 | 0.549 | **0.606** |
+| forest F1 | 0.875 | **0.880** |
+
+### Stage 2
+
+| Metric | s1_dem_v2 | dem_s1_s2_v2 |
+|---|---|---|
+| Accuracy | 0.773 | **0.858** |
+| orchards F1 | 0.746 | **0.845** |
+| plantation F1 | 0.730 | **0.848** |
+| field F1 | 0.843 | **0.880** |
+
+### Stage 3
+
+**Field:**
+
+| Metric | s1_dem_v2 | dem_s1_s2_v2 |
+|---|---|---|
+| Accuracy | 0.812 | **0.829** |
+| Rice F1 | 0.974 | **0.981** |
+| Cassava F1 | 0.710 | **0.741** |
+| Pineapple F1 | 0.746 | **0.762** |
+
+**Plantation:**
+
+| Metric | s1_dem_v2 | dem_s1_s2_v2 |
+|---|---|---|
+| Accuracy | 0.836 | **0.898** |
+| Rubber F1 | 0.846 | **0.906** |
+| Oil palm F1 | 0.857 | **0.897** |
+| Coconut F1 | 0.537 | **0.668** |
+
+**Orchards** (macro-F1 is the fair comparison here — see the raw-accuracy caveat above):
+
+| Metric | s1_dem_v2 | dem_s1_s2_v2 |
+|---|---|---|
+| Accuracy | 0.537 | **0.635** |
+| Macro F1 | 0.399 | **0.519** |
+| Durian F1 | 0.651 | **0.712** |
+| Rambutan F1 | 0.246 | **0.332** |
+| Mango F1 | 0.825 | **0.902** |
+| Longan F1 | 0.373 | **0.497** |
+| Jackfruit F1 | 0.207 | **0.386** |
+| Mangosteen F1 | 0.291 | **0.397** |
+| Langsat F1 | 0.201 | **0.409** |
+
+Unlike the v1-vs-v1 orchards comparison, here S2 wins on *both* raw accuracy and macro-F1 — no majority-collapse artifact muddying the picture.
+
+### End-to-end econ recall (the number LDD actually cares about)
+
+Computed via `evaluate_end_to_end.py` — composes the full Stage 1→2→3 cascade over all 24.3M pixels and scores against ground truth, so routing errors at any stage count against the final number.
+
+| | s1_dem_v2 (no S2) | dem_s1_s2_v2 (+S2) | Δ |
+|---|---|---|---|
+| **Overall econ recall** | 47.3% | **61.7%** | **+14.4 pp** |
+| Orchards recall | 44.2% | **51.7%** | +7.5 pp |
+| Plantation recall | 47.4% | **63.4%** | +16.0 pp |
+| Field recall | 47.7% | **53.0%** | +5.3 pp |
+
+For reference, the *first-session* end-to-end baseline (pre-gamma-fix, DEM+S1 only) was 23.1%, and the broken-gamma combined run was 19.0%. The corrected-gamma combined chain's 61.7% is roughly **2.7x** the original pre-S2 baseline.
+
+### Conclusion
+
+1. The original "S2 makes things worse" finding was entirely an artifact of RBF gamma being ~100x off-scale — confirmed twice over (the quick gamma-scale experiment, and now this full apples-to-apples v2 rebuild).
+2. Once gamma is corrected, **S2 indices provide a large, consistent, unambiguous improvement** at every stage of the cascade and in the end-to-end metric that matters most to LDD.
+3. Recommended next step: promote `dem_s1_s2_v2` artifacts to be the project's production models (currently `runs/s1_dem` and `runs/dem_s1_s2` are the stale pre-fix baselines referenced in `CLAUDE.md`/`skill.md` — those docs should eventually point at `dem_s1_s2_v2` once this is adopted as the default pipeline).
+4. Secondary follow-ups noted but not yet pursued: widen the Stage 1 `n_components` grid past its 250 ceiling; investigate Durian's F1 drop in the corrected-gamma orchards model (0.905→0.712) — likely needs its own threshold tuning given how the balanced classifier now spreads probability mass across 7 classes instead of collapsing to 1.
 
 ## Artifacts
 
