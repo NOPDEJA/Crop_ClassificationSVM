@@ -43,14 +43,14 @@ from sklearn.metrics import classification_report, confusion_matrix
 # -----------------------
 # Config
 # -----------------------
-NPZ = "./aligned_features/svm_dem_s1_s2_features_labels.npz"
-OUT_DIR = "runs/dem_s1_s2_v2/"
+NPZ = "./aligned_features/svm_add_data_features_labels.npz"
+OUT_DIR = "runs/s1_dem_v2/"
 
-STAGE1_PRED = f"{OUT_DIR}stage1_dem_s1_s2_pred.npy"
-STAGE1_MODEL = f"{OUT_DIR}stage1_dem_s1_s2.joblib"
-VALID_COLS_NPY = f"{OUT_DIR}stage1_dem_s1_s2_valid_cols.npy"
-STAGE2_PRED = f"{OUT_DIR}stage2_dem_s1_s2_pred.npy"
-STAGE2_MODEL = f"{OUT_DIR}stage2_dem_s1_s2_model.joblib"
+STAGE1_PRED = f"{OUT_DIR}stage1_s1_dem_pred.npy"
+STAGE1_MODEL = f"{OUT_DIR}stage1_s1_dem.joblib"
+VALID_COLS_NPY = f"{OUT_DIR}stage1_s1_dem_valid_cols.npy"
+STAGE2_PRED = f"{OUT_DIR}stage2_s1_dem_pred.npy"
+STAGE2_MODEL = f"{OUT_DIR}stage2_s1_dem_model.joblib"
 WEIGHT_SCALE_FILE = "stage1_feature_weight_scale.npy"  # optional
 RANDOM_STATE = 42
 
@@ -82,13 +82,13 @@ SVC_C = [0.1, 1.0, 10.0]
 N_ITER_SEARCH = 6
 N_JOBS = 1
 
-OUT_MODEL_TPL = f"{OUT_DIR}stage3_dem_s1_s2_{{grp}}_model.joblib"
-OUT_REPORT_TPL = f"{OUT_DIR}stage3_dem_s1_s2_{{grp}}_report.csv"
-OUT_TEST_PROB_TPL = f"{OUT_DIR}stage3_dem_s1_s2_{{grp}}_test_prob.npy"
-OUT_TEST_PRED_TPL = f"{OUT_DIR}stage3_dem_s1_s2_{{grp}}_test_pred.npy"
-OUT_META_TPL = f"{OUT_DIR}stage3_dem_s1_s2_{{grp}}_meta.json"
-OUT_CONF_TPL = f"{OUT_DIR}stage3_dem_s1_s2_{{grp}}_confusion_matrix.csv"
-OUT_TOP_META = f"{OUT_DIR}stage3_dem_s1_s2_meta.json"
+OUT_MODEL_TPL = f"{OUT_DIR}stage3_s1_dem_{{grp}}_model.joblib"
+OUT_REPORT_TPL = f"{OUT_DIR}stage3_s1_dem_{{grp}}_report.csv"
+OUT_TEST_PROB_TPL = f"{OUT_DIR}stage3_s1_dem_{{grp}}_test_prob.npy"
+OUT_TEST_PRED_TPL = f"{OUT_DIR}stage3_s1_dem_{{grp}}_test_pred.npy"
+OUT_META_TPL = f"{OUT_DIR}stage3_s1_dem_{{grp}}_meta.json"
+OUT_CONF_TPL = f"{OUT_DIR}stage3_s1_dem_{{grp}}_confusion_matrix.csv"
+OUT_TOP_META = f"{OUT_DIR}stage3_s1_dem_meta.json"
 
 # -----------------------
 # Helpers

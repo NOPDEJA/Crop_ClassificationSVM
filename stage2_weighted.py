@@ -18,13 +18,13 @@ from sklearn.metrics import classification_report, confusion_matrix, f1_score
 # -----------------------
 # Config
 # -----------------------
-NPZ = "./aligned_features/svm_dem_s1_s2_features_labels.npz"
-STAGE1_DIR = "runs/dem_s1_s2_v2/"   # where Stage-1 routing artifacts live
-OUT_DIR = "runs/dem_s1_s2_v2/"      # this run's outputs
+NPZ = "./aligned_features/svm_add_data_features_labels.npz"
+STAGE1_DIR = "runs/s1_dem_v2/"   # where Stage-1 routing artifacts live
+OUT_DIR = "runs/s1_dem_v2/"      # this run's outputs
 
-STAGE1_PRED = f"{STAGE1_DIR}stage1_dem_s1_s2_pred.npy"
-STAGE1_MODEL = f"{STAGE1_DIR}stage1_dem_s1_s2.joblib"
-VALID_COLS_NPY = f"{STAGE1_DIR}stage1_dem_s1_s2_valid_cols.npy"
+STAGE1_PRED = f"{STAGE1_DIR}stage1_s1_dem_pred.npy"
+STAGE1_MODEL = f"{STAGE1_DIR}stage1_s1_dem.joblib"
+VALID_COLS_NPY = f"{STAGE1_DIR}stage1_s1_dem_valid_cols.npy"
 STAGE1_CHUNK = 2_000_000
 RANDOM_STATE = 42
 
@@ -49,18 +49,18 @@ TUNE_THRESHOLDS = False
 THRESH_GRID = np.linspace(0.2, 0.95, 40)
 
 # Outputs
-OUT_MODEL = f"{OUT_DIR}stage2_dem_s1_s2_model.joblib"
-OUT_MODEL_FULL = f"{OUT_DIR}stage2_dem_s1_s2_model_fulldata.joblib"
-OUT_REPORT = f"{OUT_DIR}stage2_dem_s1_s2_report.csv"
-OUT_STATS_LU = f"{OUT_DIR}stage2_dem_s1_s2_stats_per_lu.csv"
-OUT_STATS_GROUP = f"{OUT_DIR}stage2_dem_s1_s2_stats_per_group.csv"
-OUT_TEST_PROB = f"{OUT_DIR}stage2_dem_s1_s2_test_prob.npy"
-OUT_TEST_PRED = f"{OUT_DIR}stage2_dem_s1_s2_test_pred.npy"
-OUT_CONF_CSV = f"{OUT_DIR}stage2_dem_s1_s2_confusion_matrix.csv"
-OUT_META_JSON = f"{OUT_DIR}stage2_dem_s1_s2_meta.json"
+OUT_MODEL = f"{OUT_DIR}stage2_s1_dem_model.joblib"
+OUT_MODEL_FULL = f"{OUT_DIR}stage2_s1_dem_model_fulldata.joblib"
+OUT_REPORT = f"{OUT_DIR}stage2_s1_dem_report.csv"
+OUT_STATS_LU = f"{OUT_DIR}stage2_s1_dem_stats_per_lu.csv"
+OUT_STATS_GROUP = f"{OUT_DIR}stage2_s1_dem_stats_per_group.csv"
+OUT_TEST_PROB = f"{OUT_DIR}stage2_s1_dem_test_prob.npy"
+OUT_TEST_PRED = f"{OUT_DIR}stage2_s1_dem_test_pred.npy"
+OUT_CONF_CSV = f"{OUT_DIR}stage2_s1_dem_confusion_matrix.csv"
+OUT_META_JSON = f"{OUT_DIR}stage2_s1_dem_meta.json"
 
 # full-dataset predictions filename (for Stage-3)
-STAGE2_PRED = f"{OUT_DIR}stage2_dem_s1_s2_pred.npy"
+STAGE2_PRED = f"{OUT_DIR}stage2_s1_dem_pred.npy"
 
 # controls
 RETRAIN_ON_FULL = False   # set True to retrain final model on uncapped full data (may be heavy)

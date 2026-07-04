@@ -37,7 +37,7 @@ import matplotlib.pyplot as plt
 # -----------------------
 # Config - edit if needed
 # -----------------------
-NPZ = "./aligned_features/svm_dem_s1_s2_features_labels.npz"
+NPZ = "./aligned_features/svm_add_data_features_labels.npz"
 RANDOM_STATE = 42
 
 # per-LU sampling before mapping to super-classes
@@ -66,15 +66,15 @@ N_JOBS = 1
 PRED_CHUNK = 2_000_000
 
 # Output directory — all artifacts for this run go here
-OUT_DIR = "./runs/dem_s1_s2_v2"
+OUT_DIR = "./runs/s1_dem_v2"
 os.makedirs(OUT_DIR, exist_ok=True)
 
 # Outputs
-OUT_MODEL    = f"{OUT_DIR}/stage1_dem_s1_s2.joblib"
-OUT_THRESH   = f"{OUT_DIR}/stage1_dem_s1_s2_thresholds.json"
-OUT_REPORT   = f"{OUT_DIR}/stage1_dem_s1_s2_report.csv"
-OUT_PRED_NPY = f"{OUT_DIR}/stage1_dem_s1_s2_pred.npy"
-OUT_PROB_NPY = f"{OUT_DIR}/stage1_dem_s1_s2_prob.npy"
+OUT_MODEL    = f"{OUT_DIR}/stage1_s1_dem.joblib"
+OUT_THRESH   = f"{OUT_DIR}/stage1_s1_dem_thresholds.json"
+OUT_REPORT   = f"{OUT_DIR}/stage1_s1_dem_report.csv"
+OUT_PRED_NPY = f"{OUT_DIR}/stage1_s1_dem_pred.npy"
+OUT_PROB_NPY = f"{OUT_DIR}/stage1_s1_dem_prob.npy"
 
 # mapping sets
 economic_crops = {2101,2204,2205,2302,2303,2403,2404,2405,2407,2413,2416,2419,2420}
@@ -237,7 +237,7 @@ if __name__ == "__main__":
     if nan_mask.any():
         print(f"Dropping {nan_mask.sum()} all-NaN feature columns (no S1 coverage in labeled area)")
         Xs = Xs[:, valid_cols]
-    np.save(f"{OUT_DIR}/stage1_dem_s1_s2_valid_cols.npy", valid_cols)
+    np.save(f"{OUT_DIR}/stage1_s1_dem_valid_cols.npy", valid_cols)
 
     # rebalance at super-class level (after per-LU sampling)
     Xc, y_codes_c, y_super_c = rebalance_by_superclass(Xs, ys_codes, ys_super,
