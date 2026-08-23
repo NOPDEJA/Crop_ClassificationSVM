@@ -1,0 +1,114 @@
+# Context
+
+Shared vocabulary for the LDD crop-classification work. This is a glossary, not a
+spec — it says what words mean, never how anything is implemented.
+
+## Study
+
+**Tile** — the single Sentinel-2 MGRS tile 47PQQ, covering Rayong province, Thailand.
+All work is scoped to this tile.
+
+**Epoch** — the year a set of observations and labels belongs to. Three epochs exist:
+2018, 2020, 2024. Imagery and parcel survey must always come from the same epoch;
+mixing them silently measures land-use change instead of model quality.
+
+**Parcel survey** — LDD's field-surveyed land-use polygons for one epoch, named by the
+Buddhist-era year: *2561* = 2018, *2563* = 2020, *2567* = 2024. The survey is the only
+source of ground truth.
+
+**Label** — the crop or land-cover code attached to a pixel, derived from the parcel
+survey. A **buffered label** is one whose parcel boundary was contracted inward before
+rasterization, so pixels near a parcel edge are excluded; this removes mixed pixels
+where a parcel boundary and a real crop boundary disagree.
+
+## Features
+
+**Index** — a spectral quantity computed from Sentinel-2 bands for one date
+(NDVI, EVI, NDWI, BSI, NDBI, MSAVI, SWIR_NIR, SWIR_RATIO).
+
+**Feature** — one column of the training matrix: an index at a specific date, or a
+terrain or radar quantity. A feature is identified by name, and the *order* of features
+is part of the model — a model can only be applied to features in the order it saw.
+
+**Window** — the set of dates an arm draws on. The **3-date window** is Oct/Nov/Dec;
+the **5-date window** adds Mar and Apr. The window is a property of the arm, and every
+epoch an arm is applied to must supply the same window.
+
+**Texture feature** — a feature derived from a pixel's neighbourhood rather than the
+pixel alone (e.g. the mean or variance of a 3×3 window). Texture features carry spatial
+information. The SVM cascade uses none; the collaborator's XGBoost cascade does.
+
+## Models
+
+**Arm** — one experimental configuration: a feature set, a window, an epoch, and a
+**split scheme**, trained end to end. Arms are named `<features>_<epoch>_<window>`, e.g.
+`s2_2018_3date`. Two arms differing in exactly one property are *comparable*; arms
+differing in more than one are not, and their numbers must not be placed in the same
+table as if they were. The split scheme is part of an arm's identity because a score is
+a property of a model *and* the population it was measured on: two arms split differently
+are not comparable even when every other property matches.
+
+**Cascade** — a sequence of models where each one only sees the pixels a previous model
+routed to it. Both this project's SVM and the collaborator's XGBoost are cascades, but
+they are *different* cascades and their internal stages do not correspond.
+
+**Stage** — one model within the cascade. Stage 1 assigns a superclass; Stage 2 assigns
+a subclass within economic crops; Stage 3 assigns the final crop code within a subclass.
+
+**Superclass** — the four coarse classes Stage 1 separates: economic crops, water,
+forest, others.
+
+**Subclass** — the grouping Stage 2 assigns within economic crops: orchards, plantation,
+field. Its purpose is *routing*, not reporting.
+
+**Routing** — sending a pixel to the next stage's model based on the current stage's
+prediction. A pixel routed wrongly cannot be recovered later, because the model it
+reaches was never trained on its true class. This is **error propagation**, and it is
+the cost a cascade pays for specialization.
+
+**Run** — one execution of a stage producing artifacts. All artifacts of all stages for
+one arm live in a single run directory, named after the arm.
+
+## Evaluation
+
+**Population** — the set of pixels a score is computed over. A metric is meaningless
+without one, and most of this project's measurement errors have been comparisons between
+two differently-defined populations rather than between two models.
+
+**Fitted population** — the pixels any stage used to fit or calibrate a model. A score
+computed over pixels drawn from the fitted population is optimistic and is not an
+estimate of generalization.
+
+**Split scheme** — the rule deciding which pixels may be fitted on. A **pixel split**
+assigns individual pixels independently; a **parcel split** assigns whole parcels, so
+every pixel of a parcel lands on the same side.
+
+**Parcel-disjoint** — of a population: containing no pixel from any parcel that
+contributed a fitted pixel. Under a pixel split a population can be almost entirely
+composed of pixels never individually fitted and still not be parcel-disjoint, because
+neighbouring pixels of one parcel are near-duplicates. Only a parcel-disjoint population
+estimates performance on ground the model has not seen.
+
+**Conditional metric** — a score computed only over the pixels a previous stage passed
+through. Conditional metrics are survivor-biased: they describe the model's behaviour on
+an easier population than it faces in use.
+
+**End-to-end metric** — a score computed over all pixels of a true class, counting a
+pixel correct only if every stage routed it correctly and the final code matches. This is
+the honest number, and it is always lower than any stage's conditional metric.
+
+**Flat scoring** — re-expressing a cascade's final output as a single flat set of classes
+so it can be compared against a non-cascaded model. The agreed flat taxonomy is the 13
+economic crops, plus *reservoir* and *others*; forest folds into others but is also
+reported as its own row so it is not lost.
+
+**Cross-year test** — applying a model trained on one epoch to a later epoch. Its errors
+mix two causes: the model failing, and the land genuinely having changed. A
+**change-filtered** test restricts scoring to parcels whose code is identical across both
+surveys, isolating model failure; the gap between filtered and unfiltered scores measures
+the land-use change itself.
+
+## Notes
+
+`NDVI_making.py` and `NDVI_stat_calculation.py` are one-off exploratory scripts from
+early in the project. They are not part of any pipeline and are kept only as history.
