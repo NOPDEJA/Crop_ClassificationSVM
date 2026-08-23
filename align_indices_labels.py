@@ -4,9 +4,13 @@ import rasterio
 from rasterio.warp import reproject, Resampling
 from glob import glob
 
-LABEL_FILE = "./label/label_47PQQ_buffered.tif"
-INDICES_FOLDER = "./indices"
+# Overridable so a second epoch (2020, 2024) can be aligned with the identical
+# reprojection path instead of a second copy of this loop that could drift from it.
+# Defaults reproduce the 2018 build exactly.
+LABEL_FILE = os.environ.get("ALIGN_LABEL", "./label/label_47PQQ_buffered.tif")
+INDICES_FOLDER = os.environ.get("ALIGN_INDICES", "./indices")
 OUTPUT_FOLDER = "./aligned_features"
+OUTPUT_NAME = os.environ.get("ALIGN_OUT", "svm_dem_s1_s2_features_labels.npz")
 os.makedirs(OUTPUT_FOLDER, exist_ok=True)
 
 
@@ -56,7 +60,7 @@ if __name__ == "__main__":
     # feature_names records the column order — needed for feature-subset
     # ablations (e.g. S2-only) and to survive files being added to ./indices
     feature_names = np.array([os.path.basename(f) for f in index_files])
-    out_path = os.path.join(OUTPUT_FOLDER, "svm_dem_s1_s2_features_labels.npz")
+    out_path = os.path.join(OUTPUT_FOLDER, OUTPUT_NAME)
     np.savez(out_path, X=X, y=y, feature_names=feature_names)
     print(f"\nSaved to {out_path}")
     print(f"X shape: {X.shape}  (pixels x features)")

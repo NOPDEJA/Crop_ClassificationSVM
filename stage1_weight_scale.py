@@ -37,21 +37,25 @@ import matplotlib.pyplot as plt
 # -----------------------
 # Config - edit if needed
 # -----------------------
-NPZ = "./aligned_features/svm_add_data_features_labels.npz"
-RANDOM_STATE = 42
-
-# per-LU sampling before mapping to super-classes
-SAMPLES_PER_LU = 400_000
-MIN_CLASS_PIXELS = 200
-
-# Caps (pre-split unique samples per superclass)
-CAP_ECON = 1_000_000     # keep up to this many unique econ samples before split
-CAP_WATER = 500_000
-CAP_FOREST = 600_000
-CAP_OTHERS = 800_000
+from config import (NPZ, RANDOM_STATE, PRED_CHUNK, OUT_DIR,
+                    STAGE1_MODEL, STAGE1_THRESH, STAGE1_REPORT,
+                    STAGE1_PRED, STAGE1_PROB, VALID_COLS_NPY,
+                    SAMPLES_PER_LU, MIN_CLASS_PIXELS,
+                    CAP_ECON, CAP_WATER, CAP_FOREST, CAP_OTHERS)
 
 # Pipeline / search settings
-USE_PCA = True
+# PCA(10) measured as a hard bottleneck, not a speedup (runs/probe_dry_season/
+# pca_bottleneck.csv): on a balanced 13-crop subsample it costs the 24-column arm
+# 0.037 macro F1 (0.4652 vs 0.5025 without it), and it costs the 40-column arm far
+# more -- at 10 components the 5-date arm scores *below* the 3-date one (0.4413 vs
+# 0.4652) because the two extra acquisition dates are projected away before the
+# classifier sees them. It also puts gamma off-scale: PCA components of standardised
+# data have variance equal to their eigenvalues, so gamma=None (1/10) is applied to
+# inputs whose spread is nothing like unit, the same failure mode as the corrected
+# gamma scale in the DEM+S1+S2 arm.
+# Off by default for arms wide enough to need it; env override keeps the published
+# 3-date configuration reproducible byte-for-byte.
+USE_PCA = os.environ.get("USE_PCA", "1") == "1"
 PCA_NCOMP = 10
 NYST_COMPONENTS_CANDIDATES = [150, 250]
 # corrected kernel scale: PCA components carry large variance, so the
@@ -59,22 +63,15 @@ NYST_COMPONENTS_CANDIDATES = [150, 250]
 # None = 1/n_features (0.1 for 10 PCA dims).
 NYST_GAMMA_CANDIDATES = [None, 0.005, 0.02]
 SVC_C_CANDIDATES = [1.0, 10.0]
-N_ITER_SEARCH = 5
+N_ITER_SEARCH = 3   # reduced from 5: deadline-constrained rerun, grid unchanged
 N_JOBS = 1
 
-# Prediction chunk
-PRED_CHUNK = 2_000_000
-
-# Output directory — all artifacts for this run go here
-OUT_DIR = "./runs/s1_dem_v2"
-os.makedirs(OUT_DIR, exist_ok=True)
-
-# Outputs
-OUT_MODEL    = f"{OUT_DIR}/stage1_s1_dem.joblib"
-OUT_THRESH   = f"{OUT_DIR}/stage1_s1_dem_thresholds.json"
-OUT_REPORT   = f"{OUT_DIR}/stage1_s1_dem_report.csv"
-OUT_PRED_NPY = f"{OUT_DIR}/stage1_s1_dem_pred.npy"
-OUT_PROB_NPY = f"{OUT_DIR}/stage1_s1_dem_prob.npy"
+# Outputs (paths come from config.py)
+OUT_MODEL    = STAGE1_MODEL
+OUT_THRESH   = STAGE1_THRESH
+OUT_REPORT   = STAGE1_REPORT
+OUT_PRED_NPY = STAGE1_PRED
+OUT_PROB_NPY = STAGE1_PROB
 
 # mapping sets
 economic_crops = {2101,2204,2205,2302,2303,2403,2404,2405,2407,2413,2416,2419,2420}
@@ -237,7 +234,7 @@ if __name__ == "__main__":
     if nan_mask.any():
         print(f"Dropping {nan_mask.sum()} all-NaN feature columns (no S1 coverage in labeled area)")
         Xs = Xs[:, valid_cols]
-    np.save(f"{OUT_DIR}/stage1_s1_dem_valid_cols.npy", valid_cols)
+    np.save(VALID_COLS_NPY, valid_cols)
 
     # rebalance at super-class level (after per-LU sampling)
     Xc, y_codes_c, y_super_c = rebalance_by_superclass(Xs, ys_codes, ys_super,

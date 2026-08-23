@@ -37,7 +37,8 @@ def extract_mgrs_tiles(shape, mgrs_precision=0):
 
 if __name__ == "__main__":
     # Example usage
-    shapefile_path = "C:/Users/Nop/OneDrive/เดสก์ท็อป/Works/MINEWORK/ASSIGNMENT/college/Project and Research with Prof/LDD/LDD_Scripts/Landuse_Rayoung67/LU_RYG_2567.shp"
+    from config import SHAPEFILE_2567
+    shapefile_path = SHAPEFILE_2567
     # Load the shapefile
     gdf = gpd.read_file(shapefile_path)
 

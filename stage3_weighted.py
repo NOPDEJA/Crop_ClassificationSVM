@@ -69,9 +69,8 @@ SUBCLASS_TO_CODES = {
     4: sorted([c for c in economic_crops if c not in (orchards_codes | plantation_codes | field_codes)])
 }
 
-MIN_PIXELS_PER_LU = 100
-PER_LU_CAP = 70000
-TARGET_PER_LU = 20000
+from config import MIN_PIXELS_PER_LU, PER_LU_CAP, TARGET_PER_LU  # noqa: E402
+
 MIN_TOTAL_SAMPLES = 10000
 UPSAMPLE_SMALL = True
 CONDITIONAL_UPSAMPLE = True

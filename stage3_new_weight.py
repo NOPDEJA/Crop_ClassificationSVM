@@ -43,16 +43,15 @@ from sklearn.metrics import classification_report, confusion_matrix
 # -----------------------
 # Config
 # -----------------------
-NPZ = "./aligned_features/svm_add_data_features_labels.npz"
-OUT_DIR = "runs/s1_dem_v2/"
+from config import (NPZ, RANDOM_STATE, PRED_CHUNK, OUT_DIR,
+                    STAGE1_PRED, STAGE1_MODEL, VALID_COLS_NPY,
+                    STAGE2_PRED, STAGE2_MODEL,
+                    STAGE3_MODEL_TPL, STAGE3_REPORT_TPL,
+                    STAGE3_TEST_PROB_TPL, STAGE3_TEST_PRED_TPL,
+                    STAGE3_META_TPL, STAGE3_CONF_TPL, STAGE3_TOP_META,
+                    MIN_PIXELS_PER_LU, PER_LU_CAP, TARGET_PER_LU)
 
-STAGE1_PRED = f"{OUT_DIR}stage1_s1_dem_pred.npy"
-STAGE1_MODEL = f"{OUT_DIR}stage1_s1_dem.joblib"
-VALID_COLS_NPY = f"{OUT_DIR}stage1_s1_dem_valid_cols.npy"
-STAGE2_PRED = f"{OUT_DIR}stage2_s1_dem_pred.npy"
-STAGE2_MODEL = f"{OUT_DIR}stage2_s1_dem_model.joblib"
 WEIGHT_SCALE_FILE = "stage1_feature_weight_scale.npy"  # optional
-RANDOM_STATE = 42
 
 economic_crops = {2101,2204,2205,2302,2303,2403,2404,2405,2407,2413,2416,2419,2420}
 orchards_codes = {2403, 2404, 2407, 2420, 2416, 2419, 2413}
@@ -67,28 +66,40 @@ SUBCLASS_TO_CODES = {
     4: sorted([c for c in economic_crops if c not in (orchards_codes | plantation_codes | field_codes)])
 }
 
-MIN_PIXELS_PER_LU = 100
-PER_LU_CAP = 70000        # Max samples per LU code before split
-TARGET_PER_LU = 20000     # Target for training set upsampling
+# MIN_PIXELS_PER_LU, PER_LU_CAP, TARGET_PER_LU come from config.py
 MIN_TOTAL_SAMPLES = 10000
 UPSAMPLE_SMALL = True
 CONDITIONAL_UPSAMPLE = True
 MIN_UPSAMPLE_TRIGGER = 0.67
 
-NYST_COMPONENTS = [50, 100, 150]
+# Measured, not assumed (runs/probe_dry_season/kernel_capacity.csv): on a balanced
+# 13-crop subsample the macro-F1 curve is still climbing steeply at this ceiling --
+# 150 -> 300 -> 600 -> 1000 gives 0.4876 -> 0.5355 -> 0.5708 -> 0.5927 on the 40-column
+# feature set. The ceiling also throttles the *features*: at 150 components the 5-date
+# set beats the 3-date set by only 0.013, at 1000 by 0.067. Stage 1 is left alone --
+# it fits 2.03M rows, where 600 components would not fit in memory; stages 2 and 3 fit
+# a few hundred thousand and can afford it.
+# Env-overridable so the published 3-date arm stays reproducible.
+# The default is per-arm rather than global: the 3-date arm keeps the ceiling every
+# published number was produced under, the wider arm gets the capacity it needs.
+# run_chain.sh exports ARM, so this resolves for a chain already in flight.
+_WIDE_ARMS = {"s2_2018_5date", "s2_2018_3date_v2"}
+_NYST_DEFAULT = "300,600" if os.environ.get("ARM") in _WIDE_ARMS else "50,100,150"
+NYST_COMPONENTS = [int(v) for v in os.environ.get("NYST_COMPONENTS", _NYST_DEFAULT).split(",")]
 # corrected kernel scale (see runs/exp_gamma_scale): None = 1/n_features
 NYST_GAMMA = [None, 0.01, 0.05]
 SVC_C = [0.1, 1.0, 10.0]
 N_ITER_SEARCH = 6
 N_JOBS = 1
 
-OUT_MODEL_TPL = f"{OUT_DIR}stage3_s1_dem_{{grp}}_model.joblib"
-OUT_REPORT_TPL = f"{OUT_DIR}stage3_s1_dem_{{grp}}_report.csv"
-OUT_TEST_PROB_TPL = f"{OUT_DIR}stage3_s1_dem_{{grp}}_test_prob.npy"
-OUT_TEST_PRED_TPL = f"{OUT_DIR}stage3_s1_dem_{{grp}}_test_pred.npy"
-OUT_META_TPL = f"{OUT_DIR}stage3_s1_dem_{{grp}}_meta.json"
-OUT_CONF_TPL = f"{OUT_DIR}stage3_s1_dem_{{grp}}_confusion_matrix.csv"
-OUT_TOP_META = f"{OUT_DIR}stage3_s1_dem_meta.json"
+# Outputs (paths come from config.py)
+OUT_MODEL_TPL = STAGE3_MODEL_TPL
+OUT_REPORT_TPL = STAGE3_REPORT_TPL
+OUT_TEST_PROB_TPL = STAGE3_TEST_PROB_TPL
+OUT_TEST_PRED_TPL = STAGE3_TEST_PRED_TPL
+OUT_META_TPL = STAGE3_META_TPL
+OUT_CONF_TPL = STAGE3_CONF_TPL
+OUT_TOP_META = STAGE3_TOP_META
 
 # -----------------------
 # Helpers

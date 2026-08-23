@@ -28,19 +28,13 @@ from sklearn.metrics import classification_report
 # -----------------------
 # Config
 # -----------------------
-NPZ = "./aligned_features/svm_add_data_features_labels.npz"
-OUT_DIR = "runs/s1_dem_v2/"
+from config import (NPZ, PRED_CHUNK, OUT_DIR, STAGE1_PRED, STAGE2_PRED,
+                    VALID_COLS_NPY, STAGE3_MODEL_TPL,
+                    E2E_PRED, E2E_REPORT, E2E_SUMMARY)
 
-STAGE1_PRED = f"{OUT_DIR}stage1_s1_dem_pred.npy"
-STAGE2_PRED = f"{OUT_DIR}stage2_s1_dem_pred.npy"
-VALID_COLS_NPY = f"{OUT_DIR}stage1_s1_dem_valid_cols.npy"
-STAGE3_MODEL_TPL = f"{OUT_DIR}stage3_s1_dem_{{grp}}_model.joblib"
-
-OUT_PRED = f"{OUT_DIR}end_to_end_lu_pred.npy"
-OUT_REPORT = f"{OUT_DIR}end_to_end_report.csv"
-OUT_SUMMARY = f"{OUT_DIR}end_to_end_summary.csv"
-
-PRED_CHUNK = 2_000_000
+OUT_PRED = E2E_PRED
+OUT_REPORT = E2E_REPORT
+OUT_SUMMARY = E2E_SUMMARY
 
 economic_crops = {2101,2204,2205,2302,2303,2403,2404,2405,2407,2413,2416,2419,2420}
 orchards_codes = {2403, 2404, 2407, 2413, 2416, 2419, 2420}

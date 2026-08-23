@@ -8,10 +8,11 @@ from collections import Counter
 import joblib
 import json
 
-MODEL_FILE = "runs/s1_dem/stage1_s1_dem.joblib"
-NPZ_FILE = "./aligned_features/svm_add_data_features_labels.npz"
-VALID_COLS_NPY = "runs/s1_dem/stage1_s1_dem_valid_cols.npy"
-OUT_PI_JSON = "runs/s1_dem/stage1_s1_dem_features_importance.json"
+from config import NPZ, STAGE1_MODEL, VALID_COLS_NPY, PI_JSON
+
+MODEL_FILE = STAGE1_MODEL
+NPZ_FILE = NPZ
+OUT_PI_JSON = PI_JSON
 
 # === Load model and data ===
 print("Loading model and data...")

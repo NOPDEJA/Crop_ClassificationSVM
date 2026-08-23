@@ -9,9 +9,11 @@ import pandas as pd
 from sklearn.metrics import classification_report, confusion_matrix, accuracy_score
 
 # files
-pred_file = "runs/s1_dem/stage1_s1_dem_pred.npy"
-npz_file = "./aligned_features/svm_add_data_features_labels.npz"
-out_csv = "runs/s1_dem/stage1_evaluation.csv"
+from config import NPZ, OUT_DIR, STAGE1_PRED
+
+pred_file = STAGE1_PRED
+npz_file = NPZ
+out_csv = f"{OUT_DIR}/stage1_evaluation.csv"
 
 # mapping (same as training: econ=1, water=2, others=3, forest=4)
 economic_crops = {2101,2204,2205,2302,2303,2403,2404,2405,2407,2413,2416,2419,2420}

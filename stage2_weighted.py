@@ -18,15 +18,15 @@ from sklearn.metrics import classification_report, confusion_matrix, f1_score
 # -----------------------
 # Config
 # -----------------------
-NPZ = "./aligned_features/svm_add_data_features_labels.npz"
-STAGE1_DIR = "runs/s1_dem_v2/"   # where Stage-1 routing artifacts live
-OUT_DIR = "runs/s1_dem_v2/"      # this run's outputs
+from config import (NPZ, RANDOM_STATE, PRED_CHUNK, OUT_DIR,
+                    STAGE1_PRED, STAGE1_MODEL, VALID_COLS_NPY,
+                    STAGE2_MODEL, STAGE2_MODEL_FULL, STAGE2_REPORT,
+                    STAGE2_STATS_LU, STAGE2_STATS_GROUP, STAGE2_TEST_PROB,
+                    STAGE2_TEST_PRED, STAGE2_CONF_CSV, STAGE2_META_JSON,
+                    STAGE2_PRED,
+                    MIN_PIXELS_PER_GROUP, PER_GROUP_CAP)
 
-STAGE1_PRED = f"{STAGE1_DIR}stage1_s1_dem_pred.npy"
-STAGE1_MODEL = f"{STAGE1_DIR}stage1_s1_dem.joblib"
-VALID_COLS_NPY = f"{STAGE1_DIR}stage1_s1_dem_valid_cols.npy"
-STAGE1_CHUNK = 2_000_000
-RANDOM_STATE = 42
+STAGE1_CHUNK = PRED_CHUNK
 
 economic_crops = {2101,2204,2205,2302,2303,2403,2404,2405,2407,2413,2416,2419,2420}
 orchards_codes = {2403, 2404, 2407, 2413, 2416, 2419, 2420}
@@ -34,10 +34,22 @@ plantation_codes = {2302, 2303, 2405}
 field_codes = {2101, 2204, 2205}
 SUBCLASS_LABELS = { "orchards": 1, "plantation": 2, "field": 3, "other_econ": 4 }
 
-MIN_PIXELS_PER_GROUP = 100
-PER_GROUP_CAP = 200000
+# MIN_PIXELS_PER_GROUP, PER_GROUP_CAP come from config.py
 
-NYST_COMPONENTS = [50, 100, 150]
+# Measured, not assumed (runs/probe_dry_season/kernel_capacity.csv): on a balanced
+# 13-crop subsample the macro-F1 curve is still climbing steeply at this ceiling --
+# 150 -> 300 -> 600 -> 1000 gives 0.4876 -> 0.5355 -> 0.5708 -> 0.5927 on the 40-column
+# feature set. The ceiling also throttles the *features*: at 150 components the 5-date
+# set beats the 3-date set by only 0.013, at 1000 by 0.067. Stage 1 is left alone --
+# it fits 2.03M rows, where 600 components would not fit in memory; stages 2 and 3 fit
+# a few hundred thousand and can afford it.
+# Env-overridable so the published 3-date arm stays reproducible.
+# The default is per-arm rather than global: the 3-date arm keeps the ceiling every
+# published number was produced under, the wider arm gets the capacity it needs.
+# run_chain.sh exports ARM, so this resolves for a chain already in flight.
+_WIDE_ARMS = {"s2_2018_5date", "s2_2018_3date_v2"}
+_NYST_DEFAULT = "300,600" if os.environ.get("ARM") in _WIDE_ARMS else "50,100,150"
+NYST_COMPONENTS = [int(v) for v in os.environ.get("NYST_COMPONENTS", _NYST_DEFAULT).split(",")]
 # gamma-scale experiment: conventional scale for standardized d-dim data is
 # ~1/n_features (None = 1/134 here); previous grid {0.5, 1.0} was ~100x above it
 NYST_GAMMA = [None, 0.01, 0.05]
@@ -48,24 +60,21 @@ N_JOBS = 1
 TUNE_THRESHOLDS = False
 THRESH_GRID = np.linspace(0.2, 0.95, 40)
 
-# Outputs
-OUT_MODEL = f"{OUT_DIR}stage2_s1_dem_model.joblib"
-OUT_MODEL_FULL = f"{OUT_DIR}stage2_s1_dem_model_fulldata.joblib"
-OUT_REPORT = f"{OUT_DIR}stage2_s1_dem_report.csv"
-OUT_STATS_LU = f"{OUT_DIR}stage2_s1_dem_stats_per_lu.csv"
-OUT_STATS_GROUP = f"{OUT_DIR}stage2_s1_dem_stats_per_group.csv"
-OUT_TEST_PROB = f"{OUT_DIR}stage2_s1_dem_test_prob.npy"
-OUT_TEST_PRED = f"{OUT_DIR}stage2_s1_dem_test_pred.npy"
-OUT_CONF_CSV = f"{OUT_DIR}stage2_s1_dem_confusion_matrix.csv"
-OUT_META_JSON = f"{OUT_DIR}stage2_s1_dem_meta.json"
-
-# full-dataset predictions filename (for Stage-3)
-STAGE2_PRED = f"{OUT_DIR}stage2_s1_dem_pred.npy"
+# Outputs (paths come from config.py)
+OUT_MODEL = STAGE2_MODEL
+OUT_MODEL_FULL = STAGE2_MODEL_FULL
+OUT_REPORT = STAGE2_REPORT
+OUT_STATS_LU = STAGE2_STATS_LU
+OUT_STATS_GROUP = STAGE2_STATS_GROUP
+OUT_TEST_PROB = STAGE2_TEST_PROB
+OUT_TEST_PRED = STAGE2_TEST_PRED
+OUT_CONF_CSV = STAGE2_CONF_CSV
+OUT_META_JSON = STAGE2_META_JSON
 
 # controls
 RETRAIN_ON_FULL = False   # set True to retrain final model on uncapped full data (may be heavy)
 SAVE_FULL_PRED = True     # save full-length stage2 predictions for Stage-3
-PRED_CHUNK = 2_000_000    # chunk size for full-dataset predictions
+# PRED_CHUNK comes from config.py
 
 # -----------------------
 # Helper Functions
