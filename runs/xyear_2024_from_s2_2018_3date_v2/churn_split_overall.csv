@@ -1,0 +1,4 @@
+﻿population,n_pixels,accuracy,kappa,f1_weighted,f1_macro
+labelled in both,20980833,0.6182,0.4673,0.6508,0.2516
+unchanged since 2018,18977865,0.6356,0.4783,0.6713,0.249
+changed since 2018,2002968,0.4536,0.3073,0.4872,0.1961

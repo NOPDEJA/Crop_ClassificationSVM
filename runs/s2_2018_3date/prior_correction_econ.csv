@@ -1,0 +1,71 @@
+﻿variant,crop,precision,recall,f1,support
+baseline,Rice,0.3085,0.446,0.3647,143554
+baseline,Cassava,0.283,0.4895,0.3587,560245
+baseline,Pineapple,0.3081,0.5397,0.3922,475589
+baseline,Para rubber,0.9942,0.6219,0.7652,11960721
+baseline,Oil palm,0.0948,0.215,0.1316,304356
+baseline,Durian,0.0846,0.4246,0.1412,126842
+baseline,Rambutan,0.0006,0.0413,0.0012,1818
+baseline,Coconut,0.0004,0.0062,0.0007,8648
+baseline,Mango,0.0039,0.0287,0.0069,28648
+baseline,Longan,0.0027,0.0701,0.0052,4136
+baseline,Jackfruit,0.0043,0.0582,0.0079,7555
+baseline,Mangosteen,0.0025,0.0234,0.0045,5936
+baseline,Langsat,0.001,0.1034,0.0019,464
+baseline,MACRO,0.1607,0.236,0.1678,13628512
+em_s2only,Rice,0.3923,0.4222,0.4067,143554
+em_s2only,Cassava,0.3595,0.4071,0.3818,560245
+em_s2only,Pineapple,0.3942,0.4733,0.4301,475589
+em_s2only,Para rubber,0.9786,0.6914,0.8103,11960721
+em_s2only,Oil palm,0.1477,0.414,0.2177,304356
+em_s2only,Durian,0.3346,0.1482,0.2055,126842
+em_s2only,Rambutan,0.0034,0.0039,0.0036,1818
+em_s2only,Coconut,0.0026,0.262,0.0051,8648
+em_s2only,Mango,0.0261,0.003,0.0054,28648
+em_s2only,Longan,0.0147,0.0201,0.0169,4136
+em_s2only,Jackfruit,0.0291,0.0241,0.0264,7555
+em_s2only,Mangosteen,0.011,0.0133,0.012,5936
+em_s2only,Langsat,0.003,0.0194,0.0052,464
+em_s2only,MACRO,0.2074,0.2232,0.1944,13628512
+oracle_s2only,Rice,0.4474,0.3853,0.414,143554
+oracle_s2only,Cassava,0.4134,0.326,0.3645,560245
+oracle_s2only,Pineapple,0.4501,0.4012,0.4242,475589
+oracle_s2only,Para rubber,0.9707,0.7032,0.8156,11960721
+oracle_s2only,Oil palm,0.1472,0.4167,0.2175,304356
+oracle_s2only,Durian,0.4066,0.0947,0.1536,126842
+oracle_s2only,Rambutan,0.0045,0.0022,0.003,1818
+oracle_s2only,Coconut,0.0026,0.3213,0.0052,8648
+oracle_s2only,Mango,0.0298,0.0013,0.0025,28648
+oracle_s2only,Longan,0.0163,0.0121,0.0139,4136
+oracle_s2only,Jackfruit,0.038,0.0177,0.0242,7555
+oracle_s2only,Mangosteen,0.0143,0.0101,0.0119,5936
+oracle_s2only,Langsat,0.0028,0.0086,0.0043,464
+oracle_s2only,MACRO,0.2264,0.2077,0.1888,13628512
+em,Rice,0.3453,0.4253,0.3812,143554
+em,Cassava,0.2556,0.5398,0.3469,560245
+em,Pineapple,0.3714,0.0001,0.0001,475589
+em,Para rubber,0.9727,0.76,0.8533,11960721
+em,Oil palm,0.9006,0.2547,0.3971,304356
+em,Durian,0.0,0.0,0.0,126842
+em,Rambutan,0.0006,0.0204,0.0011,1818
+em,Coconut,0.0029,0.2536,0.0058,8648
+em,Mango,0.0081,0.0035,0.0049,28648
+em,Longan,0.0,0.0,0.0,4136
+em,Jackfruit,0.0274,0.0255,0.0264,7555
+em,Mangosteen,0.0,0.0,0.0,5936
+em,Langsat,0.0,0.0,0.0,464
+em,MACRO,0.2219,0.1756,0.1551,13628512
+oracle,Rice,0.6511,0.3563,0.4606,143554
+oracle,Cassava,0.3951,0.3438,0.3677,560245
+oracle,Pineapple,0.4502,0.4007,0.424,475589
+oracle,Para rubber,0.9493,0.8248,0.8827,11960721
+oracle,Oil palm,0.5809,0.3485,0.4356,304356
+oracle,Durian,0.3682,0.125,0.1866,126842
+oracle,Rambutan,0.0,0.0,0.0,1818
+oracle,Coconut,0.0106,0.0195,0.0138,8648
+oracle,Mango,0.0695,0.001,0.002,28648
+oracle,Longan,0.0122,0.0002,0.0005,4136
+oracle,Jackfruit,0.0697,0.0026,0.0051,7555
+oracle,Mangosteen,0.0,0.0,0.0,5936
+oracle,Langsat,0.0,0.0,0.0,464
+oracle,MACRO,0.2736,0.1863,0.2137,13628512

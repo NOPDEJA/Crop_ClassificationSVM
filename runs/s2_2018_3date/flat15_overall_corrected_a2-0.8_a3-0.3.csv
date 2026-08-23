@@ -1,0 +1,4 @@
+﻿population,n_pixels,accuracy,kappa,f1_weighted,f1_macro
+all,24323769,0.732,0.5882,0.7447,0.3078
+held_out,21180058,0.7418,0.577,0.7616,0.2573
+matched,303948,0.5112,0.4448,0.5014,0.2948

@@ -1,0 +1,4 @@
+﻿arm,n_features,macro_f1,accuracy,fit_seconds
+wet3,24,0.5116,0.5166,23.4
+dry2,16,0.4037,0.412,29.4
+all5,40,0.5428,0.5448,17.5

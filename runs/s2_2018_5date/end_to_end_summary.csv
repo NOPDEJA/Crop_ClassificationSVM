@@ -1,0 +1,7 @@
+﻿level,group,true_pixels,end_to_end_recall
+overall,all_econ,15157223,0.646773488784852
+subclass,orchards,512549,0.47469607783841156
+subclass,plantation,12825848,0.66505707848713
+subclass,field,1818826,0.5663345476697607
+loss,dropped_at_stage1 (not pred econ),2022839,
+loss,misrouted_at_stage2 (wrong subclass),2289492,

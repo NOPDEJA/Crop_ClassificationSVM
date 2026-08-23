@@ -1,0 +1,47 @@
+﻿population,class,precision,recall,f1,support
+all,Rice,0.4139,0.5166,0.4596,296743
+all,Cassava,0.2947,0.4302,0.3498,807250
+all,Pineapple,0.3743,0.4912,0.4249,714833
+all,Para rubber,0.8826,0.7736,0.8245,12320950
+all,Oil palm,0.3259,0.4461,0.3766,490953
+all,Durian,0.3371,0.2821,0.3072,353768
+all,Rambutan,0.0573,0.0028,0.0054,6385
+all,Coconut,0.006,0.1875,0.0117,13945
+all,Mango,0.1995,0.0302,0.0525,68673
+all,Longan,0.0842,0.0404,0.0546,19692
+all,Jackfruit,0.1812,0.0529,0.0819,42873
+all,Mangosteen,0.0822,0.0361,0.0502,19315
+all,Langsat,0.0596,0.0705,0.0646,1843
+all,Reservoir,0.7387,0.8773,0.8021,902857
+all,Others,0.7396,0.7627,0.751,8263689
+held_out,Rice,0.2474,0.414,0.3097,143554
+held_out,Cassava,0.2444,0.4084,0.3058,560245
+held_out,Pineapple,0.3088,0.4737,0.3739,475589
+held_out,Para rubber,0.912,0.771,0.8356,11960721
+held_out,Oil palm,0.2413,0.4058,0.3026,304356
+held_out,Durian,0.1548,0.2284,0.1846,126842
+held_out,Rambutan,0.0045,0.0006,0.001,1818
+held_out,Coconut,0.004,0.1667,0.0078,8648
+held_out,Mango,0.0184,0.0043,0.007,28648
+held_out,Longan,0.0065,0.0097,0.0077,4136
+held_out,Jackfruit,0.0174,0.0168,0.0171,7555
+held_out,Mangosteen,0.0087,0.0077,0.0082,5936
+held_out,Langsat,0.0021,0.0065,0.0032,464
+held_out,Reservoir,0.6436,0.8995,0.7504,477857
+held_out,Others,0.7278,0.7622,0.7446,7073689
+matched,Rice,0.6439,0.4129,0.5031,15656
+matched,Cassava,0.5279,0.4088,0.4608,38757
+matched,Pineapple,0.6395,0.4696,0.5415,38656
+matched,Para rubber,0.4209,0.7741,0.5453,38555
+matched,Oil palm,0.7453,0.4043,0.5242,38990
+matched,Durian,0.7629,0.2287,0.3519,39312
+matched,Rambutan,0.0,0.0,0.0,781
+matched,Coconut,0.0518,0.1707,0.0795,2508
+matched,Mango,0.1327,0.005,0.0096,5615
+matched,Longan,0.1084,0.0111,0.0202,2790
+matched,Jackfruit,0.1841,0.0179,0.0327,4519
+matched,Mangosteen,0.0554,0.0064,0.0115,2657
+matched,Langsat,0.0189,0.0051,0.008,196
+matched,Reservoir,0.9207,0.9016,0.911,37425
+matched,Others,0.3041,0.6923,0.4225,37531
+held_out_forest_split,Forest,0.5769,0.9088,0.7058,2026964

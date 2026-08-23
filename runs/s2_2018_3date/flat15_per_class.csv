@@ -1,0 +1,47 @@
+﻿population,class,precision,recall,f1,support
+all,Rice,0.3198,0.5628,0.4078,296743
+all,Cassava,0.2535,0.5166,0.3401,807250
+all,Pineapple,0.3218,0.5612,0.409,714833
+all,Para rubber,0.9683,0.6246,0.7593,12320950
+all,Oil palm,0.1646,0.2896,0.2099,490953
+all,Durian,0.17,0.5234,0.2567,353768
+all,Rambutan,0.0068,0.2398,0.0132,6385
+all,Coconut,0.0025,0.0398,0.0047,13945
+all,Mango,0.0353,0.2142,0.0606,68673
+all,Longan,0.0255,0.2492,0.0462,19692
+all,Jackfruit,0.0459,0.1695,0.0723,42873
+all,Mangosteen,0.0233,0.1267,0.0393,19315
+all,Langsat,0.0092,0.4878,0.0181,1843
+all,Reservoir,0.7387,0.8773,0.8021,902857
+all,Others,0.7396,0.7627,0.751,8263689
+held_out,Rice,0.1755,0.446,0.2518,143554
+held_out,Cassava,0.2037,0.4895,0.2877,560245
+held_out,Pineapple,0.2556,0.5397,0.3469,475589
+held_out,Para rubber,0.9754,0.6219,0.7595,11960721
+held_out,Oil palm,0.0875,0.215,0.1244,304356
+held_out,Durian,0.0631,0.4246,0.1099,126842
+held_out,Rambutan,0.0004,0.0413,0.0008,1818
+held_out,Coconut,0.0003,0.0062,0.0005,8648
+held_out,Mango,0.0024,0.0287,0.0045,28648
+held_out,Longan,0.002,0.0701,0.0038,4136
+held_out,Jackfruit,0.0035,0.0582,0.0065,7555
+held_out,Mangosteen,0.0017,0.0234,0.0032,5936
+held_out,Langsat,0.0006,0.1034,0.0012,464
+held_out,Reservoir,0.6436,0.8995,0.7504,477857
+held_out,Others,0.7278,0.7622,0.7446,7073689
+matched,Rice,0.5574,0.4433,0.4938,15656
+matched,Cassava,0.5104,0.4886,0.4993,38757
+matched,Pineapple,0.6221,0.5351,0.5754,38656
+matched,Para rubber,0.7937,0.6261,0.7,38555
+matched,Oil palm,0.7148,0.213,0.3282,38990
+matched,Durian,0.6138,0.4246,0.5019,39312
+matched,Rambutan,0.0085,0.0435,0.0142,781
+matched,Coconut,0.0057,0.0048,0.0052,2508
+matched,Mango,0.0209,0.0305,0.0248,5615
+matched,Longan,0.0287,0.072,0.041,2790
+matched,Jackfruit,0.073,0.0584,0.0649,4519
+matched,Mangosteen,0.0188,0.0207,0.0197,2657
+matched,Langsat,0.0119,0.1224,0.0217,196
+matched,Reservoir,0.9207,0.9016,0.911,37425
+matched,Others,0.3041,0.6923,0.4225,37531
+held_out_forest_split,Forest,0.5769,0.9088,0.7058,2026964

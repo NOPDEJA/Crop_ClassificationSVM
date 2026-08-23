@@ -1,0 +1,40 @@
+﻿arm,class,precision,recall,f1
+wet3,Rice,0.6306,0.8066,0.7078
+wet3,Cassava,0.4471,0.5336,0.4866
+wet3,Pineapple,0.5546,0.5666,0.5605
+wet3,Para rubber,0.6289,0.7178,0.6704
+wet3,Oil palm,0.6194,0.5567,0.5864
+wet3,Durian,0.3672,0.2814,0.3186
+wet3,Rambutan,0.5725,0.4509,0.5045
+wet3,Coconut,0.5023,0.5433,0.522
+wet3,Mango,0.4709,0.5869,0.5226
+wet3,Longan,0.457,0.4216,0.4386
+wet3,Jackfruit,0.407,0.3595,0.3818
+wet3,Mangosteen,0.4686,0.3655,0.4107
+wet3,Langsat,0.6167,0.4809,0.5404
+dry2,Rice,0.4007,0.5703,0.4707
+dry2,Cassava,0.4161,0.4356,0.4257
+dry2,Pineapple,0.5271,0.4789,0.5018
+dry2,Para rubber,0.5364,0.5847,0.5595
+dry2,Oil palm,0.4554,0.3473,0.3941
+dry2,Durian,0.2912,0.1327,0.1823
+dry2,Rambutan,0.4511,0.3212,0.3752
+dry2,Coconut,0.402,0.4732,0.4347
+dry2,Mango,0.4287,0.5457,0.4802
+dry2,Longan,0.3726,0.3878,0.3801
+dry2,Jackfruit,0.3595,0.2867,0.319
+dry2,Mangosteen,0.2808,0.384,0.3244
+dry2,Langsat,0.6427,0.291,0.4006
+all5,Rice,0.6435,0.7987,0.7128
+all5,Cassava,0.4843,0.5404,0.5108
+all5,Pineapple,0.5727,0.5686,0.5706
+all5,Para rubber,0.6506,0.7153,0.6814
+all5,Oil palm,0.6229,0.5401,0.5786
+all5,Durian,0.4098,0.2606,0.3186
+all5,Rambutan,0.5843,0.5211,0.5509
+all5,Coconut,0.5403,0.5936,0.5657
+all5,Mango,0.5125,0.6486,0.5726
+all5,Longan,0.5037,0.4979,0.5008
+all5,Jackfruit,0.4391,0.397,0.417
+all5,Mangosteen,0.4814,0.4506,0.4654
+all5,Langsat,0.7369,0.5225,0.6114

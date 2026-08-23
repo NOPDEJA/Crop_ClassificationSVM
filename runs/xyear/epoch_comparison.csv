@@ -1,0 +1,7 @@
+﻿population,n_pixels,accuracy,kappa,f1_weighted,f1_macro,epoch,scope
+2018 stable,18674194,0.737,0.6168,0.7678,0.3234,2018,stable
+"2018 stable, unseen",16102201,0.7354,0.5946,0.7753,0.2585,2018,"stable, unseen"
+2020 stable,18674194,0.655,0.4871,0.6844,0.209,2020,stable
+"2020 stable, unseen",16102201,0.6687,0.4871,0.7082,0.1885,2020,"stable, unseen"
+2024 stable,18674194,0.6375,0.4809,0.673,0.2498,2024,stable
+"2024 stable, unseen",16102201,0.6367,0.4601,0.6808,0.2213,2024,"stable, unseen"

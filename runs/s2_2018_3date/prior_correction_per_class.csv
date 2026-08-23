@@ -1,0 +1,226 @@
+﻿population,class,precision,recall,f1,support
+baseline/all,Rice,0.3198,0.5628,0.4078,296743
+baseline/all,Cassava,0.2535,0.5166,0.3401,807250
+baseline/all,Pineapple,0.3218,0.5612,0.409,714833
+baseline/all,Para rubber,0.9683,0.6246,0.7593,12320950
+baseline/all,Oil palm,0.1646,0.2896,0.2099,490953
+baseline/all,Durian,0.17,0.5234,0.2567,353768
+baseline/all,Rambutan,0.0068,0.2398,0.0132,6385
+baseline/all,Coconut,0.0025,0.0398,0.0047,13945
+baseline/all,Mango,0.0353,0.2142,0.0606,68673
+baseline/all,Longan,0.0255,0.2492,0.0462,19692
+baseline/all,Jackfruit,0.0459,0.1695,0.0723,42873
+baseline/all,Mangosteen,0.0233,0.1267,0.0393,19315
+baseline/all,Langsat,0.0092,0.4878,0.0181,1843
+baseline/all,Reservoir,0.7387,0.8773,0.8021,902857
+baseline/all,Others,0.7396,0.7627,0.751,8263689
+baseline/held_out,Rice,0.1755,0.446,0.2518,143554
+baseline/held_out,Cassava,0.2037,0.4895,0.2877,560245
+baseline/held_out,Pineapple,0.2556,0.5397,0.3469,475589
+baseline/held_out,Para rubber,0.9754,0.6219,0.7595,11960721
+baseline/held_out,Oil palm,0.0875,0.215,0.1244,304356
+baseline/held_out,Durian,0.0631,0.4246,0.1099,126842
+baseline/held_out,Rambutan,0.0004,0.0413,0.0008,1818
+baseline/held_out,Coconut,0.0003,0.0062,0.0005,8648
+baseline/held_out,Mango,0.0024,0.0287,0.0045,28648
+baseline/held_out,Longan,0.002,0.0701,0.0038,4136
+baseline/held_out,Jackfruit,0.0035,0.0582,0.0065,7555
+baseline/held_out,Mangosteen,0.0017,0.0234,0.0032,5936
+baseline/held_out,Langsat,0.0006,0.1034,0.0012,464
+baseline/held_out,Reservoir,0.6436,0.8995,0.7504,477857
+baseline/held_out,Others,0.7278,0.7622,0.7446,7073689
+baseline/matched,Rice,0.5574,0.4433,0.4938,15656
+baseline/matched,Cassava,0.5104,0.4886,0.4993,38757
+baseline/matched,Pineapple,0.6221,0.5351,0.5754,38656
+baseline/matched,Para rubber,0.7937,0.6261,0.7,38555
+baseline/matched,Oil palm,0.7148,0.213,0.3282,38990
+baseline/matched,Durian,0.6138,0.4246,0.5019,39312
+baseline/matched,Rambutan,0.0085,0.0435,0.0142,781
+baseline/matched,Coconut,0.0057,0.0048,0.0052,2508
+baseline/matched,Mango,0.0209,0.0305,0.0248,5615
+baseline/matched,Longan,0.0287,0.072,0.041,2790
+baseline/matched,Jackfruit,0.073,0.0584,0.0649,4519
+baseline/matched,Mangosteen,0.0188,0.0207,0.0197,2657
+baseline/matched,Langsat,0.0119,0.1224,0.0217,196
+baseline/matched,Reservoir,0.9207,0.9016,0.911,37425
+baseline/matched,Others,0.3041,0.6923,0.4225,37531
+em_s2only/all,Rice,0.3692,0.5268,0.4342,296743
+em_s2only/all,Cassava,0.2965,0.4289,0.3506,807250
+em_s2only/all,Pineapple,0.375,0.4907,0.4251,714833
+em_s2only/all,Para rubber,0.9183,0.6939,0.7905,12320950
+em_s2only/all,Oil palm,0.1969,0.4654,0.2767,490953
+em_s2only/all,Durian,0.4016,0.1828,0.2512,353768
+em_s2only/all,Rambutan,0.0176,0.0188,0.0182,6385
+em_s2only/all,Coconut,0.0027,0.2891,0.0054,13945
+em_s2only/all,Mango,0.1484,0.0217,0.0378,68673
+em_s2only/all,Longan,0.077,0.0629,0.0692,19692
+em_s2only/all,Jackfruit,0.1745,0.0683,0.0982,42873
+em_s2only/all,Mangosteen,0.0565,0.0722,0.0634,19315
+em_s2only/all,Langsat,0.0233,0.1253,0.0393,1843
+em_s2only/all,Reservoir,0.7387,0.8773,0.8021,902857
+em_s2only/all,Others,0.7396,0.7627,0.751,8263689
+em_s2only/held_out,Rice,0.2143,0.4222,0.2842,143554
+em_s2only/held_out,Cassava,0.246,0.4071,0.3066,560245
+em_s2only/held_out,Pineapple,0.3092,0.4733,0.3741,475589
+em_s2only/held_out,Para rubber,0.9398,0.6914,0.7967,11960721
+em_s2only/held_out,Oil palm,0.1295,0.414,0.1973,304356
+em_s2only/held_out,Durian,0.1955,0.1482,0.1686,126842
+em_s2only/held_out,Rambutan,0.0015,0.0039,0.0022,1818
+em_s2only/held_out,Coconut,0.0018,0.262,0.0036,8648
+em_s2only/held_out,Mango,0.0129,0.003,0.0049,28648
+em_s2only/held_out,Longan,0.0084,0.0201,0.0119,4136
+em_s2only/held_out,Jackfruit,0.0192,0.0241,0.0214,7555
+em_s2only/held_out,Mangosteen,0.0052,0.0133,0.0075,5936
+em_s2only/held_out,Langsat,0.0014,0.0194,0.0026,464
+em_s2only/held_out,Reservoir,0.6436,0.8995,0.7504,477857
+em_s2only/held_out,Others,0.7278,0.7622,0.7446,7073689
+em_s2only/matched,Rice,0.5944,0.4213,0.4931,15656
+em_s2only/matched,Cassava,0.5286,0.4074,0.4601,38757
+em_s2only/matched,Pineapple,0.6406,0.4686,0.5413,38656
+em_s2only/matched,Para rubber,0.5148,0.6951,0.5915,38555
+em_s2only/matched,Oil palm,0.6887,0.4131,0.5164,38990
+em_s2only/matched,Durian,0.8195,0.1474,0.2499,39312
+em_s2only/matched,Rambutan,0.0282,0.0077,0.0121,781
+em_s2only/matched,Coconut,0.0239,0.2588,0.0437,2508
+em_s2only/matched,Mango,0.0622,0.0023,0.0045,5615
+em_s2only/matched,Longan,0.1132,0.0237,0.0391,2790
+em_s2only/matched,Jackfruit,0.181,0.0257,0.045,4519
+em_s2only/matched,Mangosteen,0.0323,0.0113,0.0167,2657
+em_s2only/matched,Langsat,0.0087,0.0153,0.0111,196
+em_s2only/matched,Reservoir,0.9207,0.9016,0.911,37425
+em_s2only/matched,Others,0.3041,0.6923,0.4225,37531
+oracle_s2only/all,Rice,0.41,0.4826,0.4434,296743
+oracle_s2only/all,Cassava,0.3267,0.344,0.3351,807250
+oracle_s2only/all,Pineapple,0.4143,0.4165,0.4154,714833
+oracle_s2only/all,Para rubber,0.9015,0.7056,0.7916,12320950
+oracle_s2only/all,Oil palm,0.1948,0.4677,0.275,490953
+oracle_s2only/all,Durian,0.4431,0.1165,0.1845,353768
+oracle_s2only/all,Rambutan,0.0202,0.0103,0.0137,6385
+oracle_s2only/all,Coconut,0.0026,0.347,0.0052,13945
+oracle_s2only/all,Mango,0.1693,0.0096,0.0182,68673
+oracle_s2only/all,Longan,0.0838,0.0401,0.0542,19692
+oracle_s2only/all,Jackfruit,0.2046,0.0509,0.0815,42873
+oracle_s2only/all,Mangosteen,0.0647,0.0552,0.0596,19315
+oracle_s2only/all,Langsat,0.0258,0.0722,0.038,1843
+oracle_s2only/all,Reservoir,0.7387,0.8773,0.8021,902857
+oracle_s2only/all,Others,0.7396,0.7627,0.751,8263689
+oracle_s2only/held_out,Rice,0.2451,0.3853,0.2996,143554
+oracle_s2only/held_out,Cassava,0.2748,0.326,0.2982,560245
+oracle_s2only/held_out,Pineapple,0.348,0.4012,0.3727,475589
+oracle_s2only/held_out,Para rubber,0.9272,0.7032,0.7998,11960721
+oracle_s2only/held_out,Oil palm,0.1287,0.4167,0.1967,304356
+oracle_s2only/held_out,Durian,0.2286,0.0947,0.1339,126842
+oracle_s2only/held_out,Rambutan,0.0019,0.0022,0.002,1818
+oracle_s2only/held_out,Coconut,0.0018,0.3213,0.0036,8648
+oracle_s2only/held_out,Mango,0.0146,0.0013,0.0024,28648
+oracle_s2only/held_out,Longan,0.0091,0.0121,0.0104,4136
+oracle_s2only/held_out,Jackfruit,0.0243,0.0177,0.0205,7555
+oracle_s2only/held_out,Mangosteen,0.0064,0.0101,0.0078,5936
+oracle_s2only/held_out,Langsat,0.0012,0.0086,0.0022,464
+oracle_s2only/held_out,Reservoir,0.6436,0.8995,0.7504,477857
+oracle_s2only/held_out,Others,0.7278,0.7622,0.7446,7073689
+oracle_s2only/matched,Rice,0.6278,0.3837,0.4763,15656
+oracle_s2only/matched,Cassava,0.5503,0.324,0.4079,38757
+oracle_s2only/matched,Pineapple,0.666,0.3967,0.4973,38656
+oracle_s2only/matched,Para rubber,0.4544,0.7058,0.5529,38555
+oracle_s2only/matched,Oil palm,0.6723,0.4158,0.5138,38990
+oracle_s2only/matched,Durian,0.842,0.0951,0.1708,39312
+oracle_s2only/matched,Rambutan,0.04,0.0051,0.0091,781
+oracle_s2only/matched,Coconut,0.0221,0.3182,0.0413,2508
+oracle_s2only/matched,Mango,0.0897,0.0012,0.0025,5615
+oracle_s2only/matched,Longan,0.1182,0.0147,0.0261,2790
+oracle_s2only/matched,Jackfruit,0.1884,0.0179,0.0327,4519
+oracle_s2only/matched,Mangosteen,0.0325,0.0083,0.0132,2657
+oracle_s2only/matched,Langsat,0.005,0.0051,0.0051,196
+oracle_s2only/matched,Reservoir,0.9207,0.9016,0.911,37425
+oracle_s2only/matched,Others,0.3041,0.6923,0.4225,37531
+em/all,Rice,0.3339,0.5304,0.4098,296743
+em/all,Cassava,0.223,0.5678,0.3203,807250
+em/all,Pineapple,0.3125,0.0001,0.0001,714833
+em/all,Para rubber,0.8986,0.7627,0.8251,12320950
+em/all,Oil palm,0.8036,0.2973,0.434,490953
+em/all,Durian,0.0,0.0,0.0,353768
+em/all,Rambutan,0.0031,0.0912,0.0059,6385
+em/all,Coconut,0.003,0.2827,0.0059,13945
+em/all,Mango,0.0534,0.0252,0.0342,68673
+em/all,Longan,0.0,0.0,0.0,19692
+em/all,Jackfruit,0.1415,0.0746,0.0977,42873
+em/all,Mangosteen,0.0,0.0,0.0,19315
+em/all,Langsat,0.0,0.0,0.0,1843
+em/all,Reservoir,0.7387,0.8773,0.8021,902857
+em/all,Others,0.7396,0.7627,0.751,8263689
+em/held_out,Rice,0.1905,0.4253,0.2631,143554
+em/held_out,Cassava,0.187,0.5398,0.2777,560245
+em/held_out,Pineapple,0.2385,0.0001,0.0001,475589
+em/held_out,Para rubber,0.9253,0.76,0.8345,11960721
+em/held_out,Oil palm,0.7542,0.2547,0.3808,304356
+em/held_out,Durian,0.0,0.0,0.0,126842
+em/held_out,Rambutan,0.0003,0.0204,0.0006,1818
+em/held_out,Coconut,0.002,0.2536,0.004,8648
+em/held_out,Mango,0.0044,0.0035,0.0039,28648
+em/held_out,Longan,0.0,0.0,0.0,4136
+em/held_out,Jackfruit,0.0165,0.0255,0.02,7555
+em/held_out,Mangosteen,0.0,0.0,0.0,5936
+em/held_out,Langsat,0.0,0.0,0.0,464
+em/held_out,Reservoir,0.6436,0.8995,0.7504,477857
+em/held_out,Others,0.7278,0.7622,0.7446,7073689
+em/matched,Rice,0.5364,0.4241,0.4737,15656
+em/matched,Cassava,0.3685,0.5406,0.4383,38757
+em/matched,Pineapple,0.0,0.0,0.0,38656
+em/matched,Para rubber,0.4511,0.7628,0.5669,38555
+em/matched,Oil palm,0.9228,0.2534,0.3976,38990
+em/matched,Durian,0.0,0.0,0.0,39312
+em/matched,Rambutan,0.0026,0.0269,0.0047,781
+em/matched,Coconut,0.0238,0.2536,0.0435,2508
+em/matched,Mango,0.0192,0.003,0.0052,5615
+em/matched,Longan,0.0,0.0,0.0,2790
+em/matched,Jackfruit,0.124,0.0268,0.044,4519
+em/matched,Mangosteen,0.0,0.0,0.0,2657
+em/matched,Langsat,0.0,0.0,0.0,196
+em/matched,Reservoir,0.9207,0.9016,0.911,37425
+em/matched,Others,0.3041,0.6923,0.4225,37531
+oracle/all,Rice,0.5562,0.447,0.4956,296743
+oracle/all,Cassava,0.3068,0.3625,0.3324,807250
+oracle/all,Pineapple,0.41,0.4161,0.413,714833
+oracle/all,Para rubber,0.8301,0.8273,0.8287,12320950
+oracle/all,Oil palm,0.515,0.3846,0.4404,490953
+oracle/all,Durian,0.3923,0.1541,0.2213,353768
+oracle/all,Rambutan,0.0,0.0,0.0,6385
+oracle/all,Coconut,0.0116,0.0202,0.0148,13945
+oracle/all,Mango,0.3355,0.0075,0.0147,68673
+oracle/all,Longan,0.1701,0.0017,0.0033,19692
+oracle/all,Jackfruit,0.3539,0.0099,0.0193,42873
+oracle/all,Mangosteen,0.1429,0.0001,0.0001,19315
+oracle/all,Langsat,0.0,0.0,0.0,1843
+oracle/all,Reservoir,0.7387,0.8773,0.8021,902857
+oracle/all,Others,0.7396,0.7627,0.751,8263689
+oracle/held_out,Rice,0.3698,0.3563,0.3629,143554
+oracle/held_out,Cassava,0.2578,0.3438,0.2946,560245
+oracle/held_out,Pineapple,0.3445,0.4007,0.3705,475589
+oracle/held_out,Para rubber,0.8716,0.8248,0.8475,11960721
+oracle/held_out,Oil palm,0.4326,0.3485,0.386,304356
+oracle/held_out,Durian,0.1998,0.125,0.1538,126842
+oracle/held_out,Rambutan,0.0,0.0,0.0,1818
+oracle/held_out,Coconut,0.0082,0.0195,0.0115,8648
+oracle/held_out,Mango,0.0358,0.001,0.002,28648
+oracle/held_out,Longan,0.0082,0.0002,0.0005,4136
+oracle/held_out,Jackfruit,0.0374,0.0026,0.0049,7555
+oracle/held_out,Mangosteen,0.0,0.0,0.0,5936
+oracle/held_out,Langsat,0.0,0.0,0.0,464
+oracle/held_out,Reservoir,0.6436,0.8995,0.7504,477857
+oracle/held_out,Others,0.7278,0.7622,0.7446,7073689
+oracle/matched,Rice,0.7747,0.3556,0.4874,15656
+oracle/matched,Cassava,0.5277,0.3416,0.4148,38757
+oracle/matched,Pineapple,0.6627,0.3966,0.4963,38656
+oracle/matched,Para rubber,0.3104,0.8273,0.4514,38555
+oracle/matched,Oil palm,0.8005,0.3492,0.4863,38990
+oracle/matched,Durian,0.795,0.1249,0.2159,39312
+oracle/matched,Rambutan,0.0,0.0,0.0,781
+oracle/matched,Coconut,0.1228,0.0195,0.0337,2508
+oracle/matched,Mango,0.2273,0.0009,0.0018,5615
+oracle/matched,Longan,0.2,0.0004,0.0007,2790
+oracle/matched,Jackfruit,0.2031,0.0029,0.0057,4519
+oracle/matched,Mangosteen,0.0,0.0,0.0,2657
+oracle/matched,Langsat,0.0,0.0,0.0,196
+oracle/matched,Reservoir,0.9207,0.9016,0.911,37425
+oracle/matched,Others,0.3041,0.6923,0.4225,37531
