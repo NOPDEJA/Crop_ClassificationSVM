@@ -225,15 +225,22 @@ if __name__ == "__main__":
             pe = (v.sum(0) * v.sum(1)).sum() / v.sum() ** 2
             kappa = (acc - pe) / (1 - pe)
 
-            # Ranking metric: macro over the 13 crops on true-econ pixels only, the
-            # definition the map fixed (baseline 0.1678).
+            # Ranking metric: macro over the 13 crops.
             # Label 0 ("no code") must be in the label set: a true-econ pixel the
             # cascade dropped at Stage 1, or routed to other_econ, predicts 0. Without
             # that column those pixels leave the matrix entirely and recall is
             # computed against a shrunken denominator -- which inflated it to 0.3483
             # against the reference 0.2360.
-            hm = np.isin(y[held], econ_codes)
-            ce = _matrix(y[held][hm], final[held][hm], econ_codes + [0],
+            # This USED TO restrict the rows to true-econ pixels as well, which was a
+            # second, opposite error: crop predictions landing on water, forest and
+            # "others" truth then never counted against precision. Measured over the
+            # 256-cell v2 sweep the masked metric ran a stable +0.034 high (range
+            # +0.025..+0.039) and moved the argmax by one adjacent cell, from
+            # (0.80, 0.70) to (0.80, 0.80). Every econ13_* column in a
+            # sweep_results.csv written before this fix carries that inflation and
+            # must not be compared against a column written after it.
+            yt13 = np.where(np.isin(y[held], econ_codes), y[held], 0)
+            ce = _matrix(yt13, final[held], econ_codes + [0],
                          [CROPS[c] for c in econ_codes] + ["(no code)"])
             pe13 = per_class_from_flat(ce).iloc[:len(econ_codes)]
             crop_f1 = pc.loc[[CROPS[c] for c in econ_codes], "f1"]

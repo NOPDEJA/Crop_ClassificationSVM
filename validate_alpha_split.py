@@ -57,9 +57,18 @@ def econ_scores(y, final, idx, codes):
     Label 0 ("no code") must be in the label set: a true-econ pixel the cascade dropped
     at Stage 1, or routed to other_econ, predicts 0. Without that column those pixels
     leave the matrix and recall is computed against a shrunken denominator.
+
+    The population convention matters as much as the label set. Score the WHOLE
+    held-out population with non-crop truth mapped to 0; never mask to crop-truth
+    rows first. Masking hides every crop prediction made on a non-crop pixel --
+    278,123 rows in the parcel run, 7.7% of all its crop predictions -- so those
+    false positives never reach precision, and the macro F1 comes out about 0.034
+    too high. This is the convention `train_parcel_cascade.py` and
+    `evaluate_end_to_end.py:97` use, and two numbers computed under different
+    conventions are not comparable no matter how similar they look.
     """
-    m = np.isin(y[idx], codes)
-    cm = _matrix(y[idx][m], final[idx][m], codes + [0],
+    yt = np.where(np.isin(y[idx], codes), y[idx], 0)
+    cm = _matrix(yt, final[idx], codes + [0],
                  [CROPS[c] for c in codes] + ["(no code)"])
     pc = per_class_from_flat(cm).iloc[:len(codes)]
     return float(pc.f1.mean()), int((pc.f1 >= ALIVE_EPS).sum())

@@ -156,8 +156,13 @@ if __name__ == "__main__":
             per_class += rows
             overall.append(ov)
 
-        m = np.isin(y[held], econ_codes)
-        rep = classification_report(y[held][m], final[held][m], labels=econ_codes,
+        # Whole held-out population, non-crop truth mapped to 0 -- NOT masked to
+        # crop-truth rows. Masking first hides every crop prediction made on a
+        # non-crop pixel, so those false positives never reach precision and the
+        # macro F1 comes out roughly 0.034 too high. Same convention as
+        # train_parcel_cascade.py and evaluate_end_to_end.py:97.
+        yt = np.where(np.isin(y[held], econ_codes), y[held], 0)
+        rep = classification_report(yt, final[held], labels=econ_codes,
                                     output_dict=True, zero_division=0)
         for key, name in [(str(c), CROPS[c]) for c in econ_codes] + [("macro avg", "MACRO")]:
             r = rep[key]

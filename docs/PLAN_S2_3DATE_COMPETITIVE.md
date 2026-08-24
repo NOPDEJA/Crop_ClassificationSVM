@@ -6,11 +6,29 @@ number in §0 from the run artifacts and the RF paper's Table V. Vocabulary as i
 `CONTEXT.md`. Builds on `PLAN.md` (executed), `docs/REPORT_2026-08-25.md`, and the
 finished run `runs/s2_2018_3date_parcel/`.
 
-The amendments were three: §0's comparison table now carries an explicit cap column
-and states which of its cells may be subtracted from which (they mostly may not);
-§0's weighted-F1 claim now quotes rubber's 85.1% support share, which is the actual
-reason 0.8018 and 0.714 are not comparable; and §3.3-3.4 are re-aimed at the ad-hoc
-analysis scripts, where a masking bug had manufactured a result that does not exist.
+The first three amendments were: §0's comparison table now carries an explicit cap
+column and states which of its cells may be subtracted from which (they mostly may
+not); §0's weighted-F1 claim now quotes rubber's 85.1% support share, which is the
+actual reason 0.8018 and 0.714 are not comparable; and §3.3-3.4 are re-aimed at the
+ad-hoc analysis scripts, where a masking bug had manufactured a result that does not
+exist.
+
+**Amended a third time, 2026-08-25, after the review `docs/HANDOFF_PLAN_AMEND_REVIEW.md`
+asked for.** That review's repro reproduced exactly (strict 0.2248 / 0.8018, masked
+0.2405 / 0.8309, 278,123 dropped false positives = 7.72% of all crop predictions), so
+the plan's own figures stand. Three things changed:
+
+- **§0 consequence 4 was overclaiming and has been cut back.** "Parcel-disjointness
+  costs nothing" is not supported; see below.
+- **§3.4's blast radius was swept rather than assumed** — the review's biggest open
+  item. Three of six analysis scorers carried the defect, not zero, and the
+  consequence is now measured rather than feared.
+- **A fourth amendment was added to M2**, naming the Stage-3 denominator hazard the
+  review found and left out.
+
+**Execution status.** §2.1's `CONTEXT.md` corrections and all five §3 protocol repairs
+are implemented; §4's M1-M6 are not started, and M3 onward need a retrain. What each
+repair changed is marked inline below.
 
 ## 0. The comparison targets, corrected
 
@@ -50,13 +68,23 @@ Four consequences:
 3. **No table may put crop-13, flat-14 and flat-15 macro figures in one column.** The
    agreed joint taxonomy (`CONTEXT.md`: 13 crops + reservoir + others) is the common
    endpoint; each study's native summary appears separately.
-4. **Parcel-disjointness costs nothing — and that is a tie, not a win.** The parcel run
-   scores macro F1 0.2248; the leaky v2 scores 0.2245 (`end_to_end_report.csv`). That
-   is +0.0003, and even that is loose, since the two score different populations
-   (fold 2's 3.80M crop rows vs the whole tile's 15.16M). An earlier note claiming the
-   parcel run *beat* the leaky one by ~0.016 was wrong — see §3.4. The defensible
-   claim, and it is a good one, is that removing leakage cost no measurable accuracy;
-   the RF arm cannot say the same.
+4. **We have no measurement of what leakage cost, and must not imply one.**
+   *(Amended. This read "parcel-disjointness costs nothing — a tie, not a win", leaning
+   on the parcel run's 0.2248 against the leaky v2's 0.2245.)* Those two numbers are not
+   a comparison. They score different populations — fold 2's 3.80 M crop rows against
+   the whole tile's 15.16 M — and the two runs differ in five configuration changes at
+   once: split, balancing, sink taxonomy, Stage-3 population and calibration. A gap of
+   +0.0003 between non-comparable quantities is not evidence of a tie; it is the absence
+   of evidence in either direction, and calling it a tie smuggles in a result. An
+   earlier note claiming the parcel run *beat* the leaky one by ~0.016 was worse still,
+   and was a scoring artifact — see §3.4.
+
+   What may honestly be said, and it is still worth saying: this arm's headline is
+   measured on ground the model never saw, and the RF arm's is not. That is a claim
+   about protocol, not about accuracy. A controlled estimate of leakage cost would need
+   the same configuration trained twice differing only in the split — the experiment
+   `PLAN.md` cut as run (a). It remains uncosted, and until it is run the honest answer
+   to "what did leakage buy the old numbers?" is that we do not know.
 
 †**Rubber is 85.1% of this arm's crop-13 test support** (3,235,887 of 3,800,567 rows),
 so the 0.8018 weighted F1 is close to a restatement of rubber's own F1 (0.8767). The RF
@@ -97,19 +125,26 @@ and the email does not depend on any run finishing.
 
 ## 3. Protocol repairs before any new number (cheap, mostly code)
 
-1. **Fold-1 dual use.** The Platt sigmoids are fitted on fold 1; tuning anything else
-   on fold 1 is optimistic model-selection reuse. Split fold 1 **by parcels** into a
-   calibration half and a tuning half; refit the sigmoids on the calibration half
-   only. Rare-crop tuning support becomes thin (Langsat has 13 val rows in total) —
-   any operating point selected there is labelled exploratory.
-2. **Save validation-fold probabilities.** `train_parcel_cascade.py` currently saves
-   test-fold probabilities only, which leaves nowhere honest to tune.
-3. **Add the missing assertion**: train–val parcel disjointness (train–test and
-   val–test are already asserted at `train_parcel_cascade.py:227-228`).
+1. **Fold-1 dual use.** *(IMPLEMENTED.)* The Platt sigmoids are fitted on fold 1;
+   tuning anything else on fold 1 is optimistic model-selection reuse. Fold 1 is now
+   halved **by parcel** into a calibration half and a tuning half by
+   `halve_by_parcel()`, and every stage calibrates on the calibration half only. The
+   halving is **stratified by each parcel's label**, which the plan did not ask for but
+   which the rare-crop supports force: an unstratified coin flip over 5,818 validation
+   parcels can hand a whole class to one half, leaving the calibrator with no positives
+   to fit a sigmoid against. Halves are written as `val_cal_idx.npy` / `val_tune_idx.npy`.
+   Rare-crop tuning support is still thin (Langsat has 13 val rows in total, so its
+   tuning half holds a handful) — any operating point selected there is exploratory.
+2. **Save validation-fold probabilities.** *(IMPLEMENTED.)* Every stage now writes
+   `*_prob_val.npy` alongside `*_prob_test.npy`, with the matching index arrays. This
+   costs a second prediction pass over the validation candidates, which is the price of
+   having anywhere to tune that is not fold 2.
+3. **Add the missing assertion**: train–val parcel disjointness. *(IMPLEMENTED.)*
    *Hardening, not a bug fix* — the property already holds in the current split
-   (`np.intersect1d(parcels[tr], parcels[va]).size == 0`, verified). The assertion
-   exists so that a future change to the split builder cannot break it silently,
-   which matters more once §3.1 starts subdividing fold 1.
+   (`np.intersect1d(parcels[tr], parcels[va]).size == 0`, verified, and re-verified by
+   the smoke run). The assertion exists so that a future change to the split builder
+   cannot break it silently, which matters more now that §3.1 subdivides fold 1; a
+   `cal`/`tune` disjointness assertion was added beside it for the same reason.
 4. **Fix the ad-hoc scorers — this is where the real bug was.**
    `train_parcel_cascade.py` is already safe: it passes `labels=CROPS`, a fixed list,
    so no class can drop out of its macro average. The danger is the one-off analysis
@@ -129,6 +164,35 @@ and the email does not depend on any run finishing.
    Before any cross-run comparison, confirm both sides used this convention. Two
    numbers computed under different conventions are not comparable no matter how
    similar they look.
+
+   **Swept and fixed, 2026-08-25.** The blast radius was checked rather than assumed.
+   Three of the six analysis scorers carried the defect; three did not.
+
+   | script | verdict |
+   |---|---|
+   | `sweep_prior_alpha.py:235` | **had it** — and on `econ13_macro_f1`, the column that *ranked* the 256-cell sweep |
+   | `apply_prior_correction.py:159` | **had it** — on the per-crop econ-13 table |
+   | `validate_alpha_split.py:61` | **had it** — inside `econ_scores()`, so both the A (selection) and B (reporting) halves |
+   | `audit_parcel_disjoint.py` | clean — `np.where(isin(y, CODES), y, 0)` with `labels=CODES` |
+   | `rescore_collaborator_protocol.py` | clean — maps both truth and prediction into `others` |
+   | `diagnose_error_budget.py` | clean — computes no precision at all; its true-econ mask is the correct unit for tracing where recall goes |
+
+   All three are now fixed to the strict convention. The consequence is **measured, not
+   feared**: the v2 sweep happens to carry both a masked column (`econ13_macro_f1`) and a
+   strict one (`crop_macro_f1_flat`) for all 256 cells, so the two can be compared
+   directly. Masking ran a **stable +0.034 high** (mean 0.0344, range 0.0249–0.0389) and
+   moved the argmax by **one adjacent cell**, (0.80, 0.70) → (0.80, 0.80).
+
+   So the sweep's *ranking* survives the bug and its *levels* do not. Restated honestly,
+   prior correction's gain over the uncorrected baseline is **+0.0015** (strict:
+   0.2036 → 0.2051), not the **+0.0054** the masked column showed (0.2374 → 0.2428) —
+   both of which are small enough that §4's M2 should be framed as a diagnostic, not as
+   a source of headline gain. Note the shape of the original error: two of the three
+   scripts already computed a clean metric next to the masked one. The masked one was
+   simply the one being read.
+
+   **Every `econ13_*` column in a `sweep_results.csv` written before this fix is
+   inflated, and must not be placed beside one written after it.**
 5. **Cross-fitted Stage-1 routes for Stage-2 selection.** Stage-2 training candidates
    are chosen by a Stage-1 model fitted on those same rows; before any Stage-2
    tuning, generate Stage-1 routes for training parcels out-of-fold (parcel-grouped).
@@ -139,6 +203,37 @@ and the email does not depend on any run finishing.
    the 0.2248 baseline on identical parcels.
 
 ## 4. The modelling sequence (each step selected off-test, one final test read)
+
+### M0 — The prerequisite run *(~7 h; NOT in the original sequence)*
+
+**Added 2026-08-25. The sequence below had an unstated dependency.** M1 audits
+calibration "on the calibration half" and M2 selects "on the tuning half of fold 1" —
+but neither half exists in any run yet, and `runs/s2_2018_3date_parcel/` saves no
+validation probabilities at all. §3.1 and §3.2 are edits to
+`train_parcel_cascade.py`; they take effect only when that script is next run. So M1
+and M2 cannot start on existing artifacts, and the plan as written implied they could.
+
+There is no honest shortcut. Dumping validation probabilities from the *saved* models
+would produce arrays whose sigmoids were fitted on a random 300,000-row subsample of
+the whole of fold 1 — so the "tuning half" would be contaminated by calibration,
+which is precisely the reuse §3.1 exists to remove. Scoring fold 2 instead is barred
+by §3.6.
+
+M0 is therefore the current configuration plus the five §3 repairs, and nothing else:
+no new features, no new hyperparameters. It earns its cost twice over, because it is
+also **the baseline M5's paired parcel bootstrap must compare against**. The existing
+0.2248 is not that baseline — it was produced without the repairs, so a later
+comparison against it would confound the repairs with M3's features and M4's capacity.
+
+*Verify:* `val_cal_idx.npy`, `val_tune_idx.npy` and a `*_prob_val.npy` per stage exist;
+the cal/tune parcel-disjointness assertion passed; the logged out-of-fold vs in-sample
+Stage-1 route agreement is recorded in the manifest (a low figure is not a failure —
+it is the size of the problem §3.5 fixes, and should be reported).
+
+*Cost note:* §3.5's cross-fitting adds `CROSSFIT_S1` extra Stage-1 base fits (default 3)
+and §3.2 adds a prediction pass over the validation candidates, taking the chain from
+roughly 4.7 h to roughly 7 h. `CROSSFIT_S1=0` restores the old in-sample routes and the
+old runtime, and logs a warning — acceptable only for a smoke test, never for M0 or M5.
 
 ### M1 — Calibration audit *(hours, no training)*
 Reliability curves / Brier per stage on the calibration half, predicted vs observed
@@ -151,6 +246,25 @@ is **operating-point tuning**, not prior correction, and the plan says so.
 The (α₂, α₃) exponent sweep applied to the parcel run's probability arrays — with the
 sink included in the derivation and the denominator taken from the calibration
 population's priors, not the old balanced-regime constants in `sweep_prior_alpha.py`.
+
+**Amendment 4 — be precise about *which* denominator is stale, because only one is.**
+Verified against `runs/s2_2018_3date_parcel/run.log` and `config.py:50-63`:
+
+- *Stage 2 is safe.* `sweep_prior_alpha.py:124` asserts a uniform `pi_train` because
+  Stage 2 saw an equal count per subclass. It still does: the parcel run's Stage-2 base
+  fit is exactly **800,000 rows = 4 × `PER_GROUP_CAP`** (200,000), so the cap bound
+  uniformly in both runs and the *ratio* is unaffected. Only the comment's number is
+  stale, not the arithmetic.
+- *Stage 3 is the real hazard.* The script reads per-class training counts from a saved
+  artifact (`ratio3_den`, lines 121-122) rather than assuming uniformity — correct
+  behaviour in itself, but those counts describe the **v2** run. In the parcel run the
+  Stage-3 caps did **not** all bind: field fit on 210,000 = 3 × `PER_LU_CAP` (uniform),
+  but orchards fit on **172,371** and plantation on **148,344**, both under their
+  ceilings and therefore non-uniform. Reusing v2's counts file would apply the wrong
+  denominator to two of the three experts, and would do it silently.
+
+M2 must therefore recompute Stage-3 denominators from the parcel run's own fitted
+counts, and must fail loudly rather than fall back to an artifact from another run.
 Select on the tuning half of fold 1; the hypothesis (not a promise) is that it
 revives some of the seven dead crops at a macro-F1 cost/gain to be measured. Keep
 hard routing (§5 of the report: joint scoring is worse).

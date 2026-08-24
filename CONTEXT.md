@@ -36,7 +36,10 @@ epoch an arm is applied to must supply the same window.
 
 **Texture feature** — a feature derived from a pixel's neighbourhood rather than the
 pixel alone (e.g. the mean or variance of a 3×3 window). Texture features carry spatial
-information. The SVM cascade uses none; the collaborator's XGBoost cascade does.
+information. **Neither study uses any** — this entry previously said the collaborator's
+model did, which was checked against `github.com/Gunkartan/geospatial` and is wrong.
+Their columns are NDVI, EVI, NDWI (MNDWI form), MTCI and raw long-SWIR, all per-pixel.
+Texture is therefore an untried direction for both arms, not a difference between them.
 
 ## Models
 
@@ -49,8 +52,11 @@ a property of a model *and* the population it was measured on: two arms split di
 are not comparable even when every other property matches.
 
 **Cascade** — a sequence of models where each one only sees the pixels a previous model
-routed to it. Both this project's SVM and the collaborator's XGBoost are cascades, but
-they are *different* cascades and their internal stages do not correspond.
+routed to it. **Only this project's SVM is a cascade.** The collaborator's crop model is
+a flat 14-class `XGBClassifier` with no routing at all, so there are no stages on their
+side to correspond to ours; comparisons must be made end to end, never stage by stage.
+An earlier version of this entry called their model a cascade too, and that error made
+a stage-by-stage comparison look meaningful when it never was.
 
 **Stage** — one model within the cascade. Stage 1 assigns a superclass; Stage 2 assigns
 a subclass within economic crops; Stage 3 assigns the final crop code within a subclass.
