@@ -1,7 +1,7 @@
 """save_stage23_probs.py
 
 Stage 2 and Stage 3 saved probabilities only for their held-out test splits, so
-post-hoc prior correction (S2_SVM_ANALYSIS.md 6.4, option 1) cannot be applied
+post-hoc prior correction (docs/S2_SVM_ANALYSIS.md 6.4, option 1) cannot be applied
 over the tile.  This re-runs predict_proba with the already-fitted models --
 no retraining -- and stores full-tile probabilities for every routed pixel.
 

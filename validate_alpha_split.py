@@ -43,7 +43,7 @@ AXIS = [round(v, 2) for v in np.arange(0.0, 1.001, 0.1)] + [0.3, 0.8]
 AXIS = sorted(set(AXIS))
 SPLIT_SEED = 20260821
 
-# Prior RF paper, its own test split (S2_SVM_ANALYSIS.md §6.3)
+# Prior RF paper, its own test split (docs/S2_SVM_ANALYSIS.md §6.3)
 RF_PAPER = {"accuracy": 0.716, "kappa": 0.678, "f1_weighted": 0.714, "n_pixels": 303_947}
 
 

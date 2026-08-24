@@ -1,6 +1,6 @@
 """apply_prior_correction.py
 
-Tests option 1 of S2_SVM_ANALYSIS.md 6.4 / 6.5: every stage trains on rebalanced
+Tests option 1 of docs/S2_SVM_ANALYSIS.md 6.4 / 6.5: every stage trains on rebalanced
 data and is then applied to a tile with the real class priors, so the cascade
 redistributes rubber across the twelve rarer crops.  Post-hoc prior correction
 undoes that at inference time, with no retraining:
