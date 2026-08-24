@@ -1,8 +1,16 @@
 # Plan — making the S2-only 3-date SVM arm presentable beside the RF paper and the XGBoost arm
 
 Drafted 2026-08-25; revised the same day after an independent review (Codex) of the
-first draft. Vocabulary as in `CONTEXT.md`. Builds on `PLAN.md` (executed),
-`docs/REPORT_2026-08-25.md`, and the finished run `runs/s2_2018_3date_parcel/`.
+first draft; amended again 2026-08-25 after a verification pass that re-derived every
+number in §0 from the run artifacts and the RF paper's Table V. Vocabulary as in
+`CONTEXT.md`. Builds on `PLAN.md` (executed), `docs/REPORT_2026-08-25.md`, and the
+finished run `runs/s2_2018_3date_parcel/`.
+
+The amendments were three: §0's comparison table now carries an explicit cap column
+and states which of its cells may be subtracted from which (they mostly may not);
+§0's weighted-F1 claim now quotes rubber's 85.1% support share, which is the actual
+reason 0.8018 and 0.714 are not comparable; and §3.3-3.4 are re-aimed at the ad-hoc
+analysis scripts, where a masking bug had manufactured a result that does not exist.
 
 ## 0. The comparison targets, corrected
 
@@ -11,26 +19,50 @@ paper's Table IV "F1-score 0.7139" is the support-weighted average; computed fro
 own Table V per-class figures, the RF model's **macro F1 is ≈ 0.625 over its 15
 classes and ≈ 0.602 over the 13 crops**. The comparison the joint paper must survive:
 
-| study | model | eval population | crop-13 macro F1 | weighted F1 |
-|---|---|---|---|---|
-| RF paper | flat 15-class RF | pixel 80/10/10, classes capped ~390k, rare crops supplemented from the 2020 epoch | ≈ 0.602 (from Table V) | 0.714 |
-| Collaborator | flat 14-class XGBoost | pixel 60/20/20, capped 200k/class, scored on the CV partition | (their repo) | — |
-| This arm | 3-stage SVM cascade | **parcel-disjoint** test fold, natural priors | 0.2248 | **0.8018** |
-| This arm, rescored under a 200k cap | same model | capped, still parcel-disjoint-trained | 0.3965* | 0.5520* |
+| study | model | eval population | cap | crop-13 macro F1 | weighted F1 |
+|---|---|---|---|---|---|
+| RF paper | flat 15-class RF | pixel 80/10/10, rare crops supplemented from the 2020 epoch | ~390k/class | ≈ 0.602 (from Table V) | 0.714 |
+| Collaborator | flat 14-class XGBoost | pixel 60/20/20, scored on the CV partition | 200k/class | (their repo) | — |
+| This arm | 3-stage SVM cascade | **parcel-disjoint** test fold | none (natural priors) | 0.2248 | 0.8018† |
+| This arm, rescored under a 200k cap | *leaky v2* model | pixel-split-trained, capped | 200k/class | 0.3965\* | 0.5520\* |
 
-*\*from `rescore_collaborator_protocol.py` applied to the v2 predictions; treat as the
-shape of the population effect, to be recomputed on the parcel run.*
+*\*from `rescore_collaborator_protocol.py` applied to the **v2 (pixel-split, leaky)**
+predictions — not the parcel run. It shows the shape of the population effect only, and
+must be recomputed on the parcel run before it appears in any joint table.*
 
-Three consequences:
+**The cap column is not decoration.** The three cap regimes (~390k / 200k / none) are
+different populations, so the macro column is *not* a ranking and no two of its cells
+are directly subtractable. Only cells sharing a cap may be compared. The one
+comparison this plan will actually earn is parcel-run-at-200k vs collaborator-at-200k,
+and it does not exist yet.
 
-1. The honest macro gap is roughly 0.40 vs 0.60 under comparable capped populations —
-   large, but half the size the mislabeled 0.714 implied, and the RF side still
-   carries pixel-split leakage and 2020 supplementation that this arm removed.
+Four consequences:
+
+1. Under matched 200k caps the gap looks like roughly 0.40 vs 0.60 — large, but half
+   the size the mislabeled 0.714 implied, and the RF side still carries pixel-split
+   leakage and 2020 supplementation that this arm removed. **Caveat that presently
+   voids the number:** the 0.40 is the *leaky* v2 model's capped rescore, and 0.60 is
+   RF at a ~390k cap, not 200k. Neither half of "0.40 vs 0.60" is yet an honest,
+   like-for-like figure; M5 produces the first one that is. Do not put this sentence in
+   an email or a paper until then.
 2. This arm's weighted F1 (0.8018, parcel-disjoint) exceeds the RF headline (0.714,
-   capped) — quotable only with both populations stated, never as a bare win.
+   capped) — but see †. This is the weakest claim in the plan, not the strongest.
 3. **No table may put crop-13, flat-14 and flat-15 macro figures in one column.** The
    agreed joint taxonomy (`CONTEXT.md`: 13 crops + reservoir + others) is the common
    endpoint; each study's native summary appears separately.
+4. **Parcel-disjointness costs nothing — and that is a tie, not a win.** The parcel run
+   scores macro F1 0.2248; the leaky v2 scores 0.2245 (`end_to_end_report.csv`). That
+   is +0.0003, and even that is loose, since the two score different populations
+   (fold 2's 3.80M crop rows vs the whole tile's 15.16M). An earlier note claiming the
+   parcel run *beat* the leaky one by ~0.016 was wrong — see §3.4. The defensible
+   claim, and it is a good one, is that removing leakage cost no measurable accuracy;
+   the RF arm cannot say the same.
+
+†**Rubber is 85.1% of this arm's crop-13 test support** (3,235,887 of 3,800,567 rows),
+so the 0.8018 weighted F1 is close to a restatement of rubber's own F1 (0.8767). The RF
+population is rebalanced to ~390k per class, where rubber is ~15%. The two weighted
+numbers therefore measure near-different things, and the concentration share — not a
+vague "populations differ" — is what must be quoted beside 0.8018 every single time.
 
 ## 1. Constraints (unchanged)
 
@@ -44,8 +76,14 @@ The taxonomy, epoch and shared population determine what every later step optimi
 and the email does not depend on any run finishing.
 
 1. **Verify the RF paper's numbers against the published PDF** (done above; record in
-   the joint-paper notes) and fix the stale `CONTEXT.md` line describing the
-   collaborator's XGBoost as a cascade — it is flat.
+   the joint-paper notes) and fix the stale `CONTEXT.md` description of the
+   collaborator's XGBoost as a cascade — it is a flat 14-class model. This is **three
+   lines, not one**: `CONTEXT.md:39` ("The SVM cascade uses none; the collaborator's
+   XGBoost cascade does") and `CONTEXT.md:52-53` ("Both this project's SVM and the
+   collaborator's XGBoost are cascades, but they are *different* cascades and their
+   internal stages do not correspond"). Line 39 carries a second claim in the same
+   breath — that this arm uses no temporal information while theirs does — which must
+   be re-checked on its own merits rather than deleted along with the cascade error.
 2. **Settle the epoch question with the collaborator before proposing pixel IDs.**
    Their model is 2024-trained (2020-supplemented); this arm is 2018. A shared pixel
    list is only meaningful once both sides score the same epoch, or each epoch gets
@@ -67,9 +105,30 @@ and the email does not depend on any run finishing.
 2. **Save validation-fold probabilities.** `train_parcel_cascade.py` currently saves
    test-fold probabilities only, which leaves nowhere honest to tune.
 3. **Add the missing assertion**: train–val parcel disjointness (train–test and
-   val–test are already asserted).
-4. **Fixed class list in every scorer**, so a rare class absent from a fold cannot
-   silently drop out of a macro average.
+   val–test are already asserted at `train_parcel_cascade.py:227-228`).
+   *Hardening, not a bug fix* — the property already holds in the current split
+   (`np.intersect1d(parcels[tr], parcels[va]).size == 0`, verified). The assertion
+   exists so that a future change to the split builder cannot break it silently,
+   which matters more once §3.1 starts subdividing fold 1.
+4. **Fix the ad-hoc scorers — this is where the real bug was.**
+   `train_parcel_cascade.py` is already safe: it passes `labels=CROPS`, a fixed list,
+   so no class can drop out of its macro average. The danger is the one-off analysis
+   scripts, and it has already bitten once. `parcel_agg.py` masked to
+   `(asg == 2) & isin(y, CODES)` **before** computing precision, so the 278,123
+   non-crop test rows that the cascade predicted as a crop — 7.7% of all its crop
+   predictions — never entered any false-positive count. That produced a macro F1 of
+   0.2405 where the run's own `report_hard.csv` says 0.2248, and the inflated figure
+   was then compared against a leaky-v2 number computed the stricter way, manufacturing
+   a ~0.016 "gain" that does not exist (§0, consequence 4). Therefore every scorer,
+   ad-hoc ones included, must fix **both**:
+   - the **class list** (`labels=CROPS`), so a rare class cannot vanish; and
+   - the **population convention** — score the full test fold with non-crop truth
+     mapped to 0, exactly as `train_parcel_cascade.py` and `evaluate_end_to_end.py`
+     do. Never mask to crop-truth rows before computing precision.
+
+   Before any cross-run comparison, confirm both sides used this convention. Two
+   numbers computed under different conventions are not comparable no matter how
+   similar they look.
 5. **Cross-fitted Stage-1 routes for Stage-2 selection.** Stage-2 training candidates
    are chosen by a Stage-1 model fitted on those same rows; before any Stage-2
    tuning, generate Stage-1 routes for training parcels out-of-fold (parcel-grouped).
