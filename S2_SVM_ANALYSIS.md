@@ -1289,9 +1289,15 @@ second-hand notes and were wrong on points 1, 2 and 3.
    raw long-SWIR. Only here: BSI, NDBI, MSAVI, SWIR_NIR, SWIR_RATIO.
    *NDWI is shared in name only*: theirs is (green − SWIR)/(green + SWIR), the MNDWI
    form; ours is (green − NIR)/(green + NIR).
-2. *Texture.* Neither study uses texture. Both are strictly per-pixel. (A previous
-   revision of this section stated that the XGBoost study appends 3×3 local mean and
-   variance per feature; it does not.)
+2. *Texture.* The **crop** models on both sides are strictly per-pixel:
+   `extract_crops.py` contains no neighbourhood features at all. The XGBoost study's
+   *water* and *buildings* detectors do append a 3×3 local mean and variance per index
+   (`extract_water.py`, `extract_buildings.py`), but those are separate binary models
+   whose output does not feed the crop model, and only the crop map is comparable
+   (point 3). So texture is not an asymmetry on the axis this paper compares.
+   (Two earlier revisions of this section were wrong in opposite directions: the first
+   said the XGBoost study appends texture to every feature, the second said neither
+   study uses texture anywhere. Both overgeneralised from one part of the repository.)
 3. *Model shape differs.* This study is a three-stage cascade. The XGBoost study runs
    three independent detectors — water, buildings, crops — of which the crop model is a
    **flat 14-class classifier** (the 13 crops plus an `others` class), not a stage of a
