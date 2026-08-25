@@ -1,7 +1,7 @@
 """diagnose_error_budget.py
 
 Traces every economic-crop pixel through the whole cascade instead of scoring
-each stage separately, and prints the four tables of S2_SVM_ANALYSIS.md 6.5:
+each stage separately, and prints the four tables of docs/S2_SVM_ANALYSIS.md 6.5:
 
   A  Stage-1 economic-crop recall per true crop (where the dropped pixels go)
   B  Para rubber's full fate, stage by stage

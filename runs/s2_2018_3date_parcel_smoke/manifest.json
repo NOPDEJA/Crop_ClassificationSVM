@@ -1,0 +1,43 @@
+{
+  "smoke": true,
+  "params_stage1": {
+    "n_components": 250,
+    "gamma": 0.02,
+    "C": 1.0
+  },
+  "params_stage23": {
+    "n_components": 600,
+    "gamma": null,
+    "C": 10.0
+  },
+  "pca": false,
+  "class_weight": null,
+  "upsampling": false,
+  "started": "2026-08-23 22:34:03",
+  "folds": {
+    "train": 304727,
+    "val": 81953,
+    "test": 113320
+  },
+  "n_features": 24,
+  "stage1_train": {
+    "1": 181835,
+    "2": 17457,
+    "3": 73216,
+    "4": 32219
+  },
+  "stage2_sink_train": 26593,
+  "results": {
+    "hard": {
+      "rows": 113320,
+      "macro_f1": 0.208,
+      "weighted_f1": 0.8077
+    },
+    "joint": {
+      "rows": 113320,
+      "macro_f1": 0.1531,
+      "weighted_f1": 0.7817
+    }
+  },
+  "finished": "2026-08-23 22:48:26"
+}

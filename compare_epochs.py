@@ -7,7 +7,7 @@ The 2018, 2020 and 2024 epochs on one identical population.
 Each epoch is otherwise scored on its own survey's pixels -- 24.3 M for 2018, 23.3 M for
 2020, 21.0 M for 2024, with different class mixes (rubber is 49 % of the 2020 population
 against 45.5 % of the 2024 one). Accuracy across different class mixes is not a comparison,
-the same trap as the cross-arm splits in S2_SVM_ANALYSIS.md 6.9. Here every epoch is scored
+the same trap as the cross-arm splits in docs/S2_SVM_ANALYSIS.md 6.9. Here every epoch is scored
 on the pixels labelled in all three surveys that carry the SAME class in all three, so the
 only thing varying is which year's reflectance the 2018-trained cascade saw.
 

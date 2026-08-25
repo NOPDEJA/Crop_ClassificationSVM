@@ -1,0 +1,40 @@
+﻿population,lu_code,crop,support,precision,recall,f1
+all,2101,Rice,296743,0.3477,0.5837,0.4358
+all,2204,Cassava,807250,0.2736,0.5181,0.3581
+all,2205,Pineapple,714833,0.3488,0.5962,0.4401
+all,2302,Rubber,12320950,0.9663,0.6588,0.7835
+all,2303,Oil palm,490953,0.1943,0.3526,0.2506
+all,2403,Durian,353768,0.1797,0.5364,0.2692
+all,2404,Rambutan,6385,0.0101,0.3294,0.0196
+all,2405,Coconut,13945,0.0065,0.0458,0.0113
+all,2407,Mango,68673,0.0511,0.2328,0.0838
+all,2413,Longan,19692,0.0398,0.3696,0.0719
+all,2416,Jackfruit,42873,0.0608,0.2854,0.1002
+all,2419,Mangosteen,19315,0.0334,0.2085,0.0575
+all,2420,Langsat,1843,0.0191,0.5893,0.0371
+pixel_held_out,2101,Rice,143497,0.1954,0.4669,0.2755
+pixel_held_out,2204,Cassava,560543,0.2212,0.491,0.305
+pixel_held_out,2205,Pineapple,474943,0.2803,0.5732,0.3765
+pixel_held_out,2302,Rubber,11960953,0.9734,0.6562,0.7839
+pixel_held_out,2303,Oil palm,304402,0.1116,0.2788,0.1594
+pixel_held_out,2403,Durian,125799,0.0669,0.4382,0.1161
+pixel_held_out,2404,Rambutan,1773,0.0007,0.0643,0.0013
+pixel_held_out,2405,Coconut,8635,0.0006,0.0065,0.0012
+pixel_held_out,2407,Mango,29381,0.0037,0.0318,0.0067
+pixel_held_out,2413,Longan,4045,0.0029,0.1004,0.0056
+pixel_held_out,2416,Jackfruit,7219,0.0046,0.1004,0.0088
+pixel_held_out,2419,Mangosteen,5698,0.0023,0.037,0.0043
+pixel_held_out,2420,Langsat,445,0.001,0.1056,0.0021
+parcel_disjoint,2101,Rice,11,0.0031,0.2727,0.0061
+parcel_disjoint,2204,Cassava,259,0.0209,0.1583,0.0369
+parcel_disjoint,2205,Pineapple,38,0.0101,0.3947,0.0197
+parcel_disjoint,2302,Rubber,23877,0.942,0.4477,0.607
+parcel_disjoint,2303,Oil palm,84,0.0049,0.0714,0.0092
+parcel_disjoint,2403,Durian,44,0.0063,0.3636,0.0123
+parcel_disjoint,2404,Rambutan,13,0.002,0.0769,0.0038
+parcel_disjoint,2405,Coconut,11,0.0,0.0,0.0
+parcel_disjoint,2407,Mango,8,0.0,0.0,0.0
+parcel_disjoint,2413,Longan,0,0.0,0.0,0.0
+parcel_disjoint,2416,Jackfruit,3,0.0,0.0,0.0
+parcel_disjoint,2419,Mangosteen,22,0.0059,0.0909,0.011
+parcel_disjoint,2420,Langsat,5,0.0,0.0,0.0

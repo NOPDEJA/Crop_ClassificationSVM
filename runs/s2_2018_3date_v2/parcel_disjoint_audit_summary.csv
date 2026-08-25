@@ -1,0 +1,4 @@
+﻿population,rows,parcels,macro_f1,weighted_f1,ci_lo,ci_hi
+all,24323769,29117,0.2245,0.7005,,
+pixel_held_out,21178879,28534,0.1574,0.7213,,
+parcel_disjoint,44561,4033,0.0543,0.595,0.0507,0.058

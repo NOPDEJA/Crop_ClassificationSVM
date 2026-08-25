@@ -1,0 +1,211 @@
+﻿stage,class,bin,n,mean_pred,obs_freq
+stage1 (superclass),economic,0,209701,0.04595,0.0361
+stage1 (superclass),economic,1,103928,0.145,0.09567
+stage1 (superclass),economic,2,75495,0.24901,0.1583
+stage1 (superclass),economic,3,73569,0.35039,0.23617
+stage1 (superclass),economic,4,83601,0.45166,0.32715
+stage1 (superclass),economic,5,105025,0.55218,0.42166
+stage1 (superclass),economic,6,141020,0.6524,0.53699
+stage1 (superclass),economic,7,196083,0.75346,0.70593
+stage1 (superclass),economic,8,337416,0.85584,0.88272
+stage1 (superclass),economic,9,460146,0.94106,0.96567
+stage1 (superclass),water,0,1768419,0.00254,0.00342
+stage1 (superclass),water,1,5792,0.14231,0.14727
+stage1 (superclass),water,2,3001,0.24575,0.23592
+stage1 (superclass),water,3,2131,0.34844,0.27593
+stage1 (superclass),water,4,1537,0.44856,0.25179
+stage1 (superclass),water,5,1340,0.54896,0.2709
+stage1 (superclass),water,6,1102,0.64946,0.34029
+stage1 (superclass),water,7,1092,0.74889,0.31044
+stage1 (superclass),water,8,998,0.84928,0.26754
+stage1 (superclass),water,9,572,0.94042,0.25699
+stage1 (superclass),others,0,713023,0.04537,0.04181
+stage1 (superclass),others,1,297313,0.14422,0.17181
+stage1 (superclass),others,2,171638,0.24654,0.34116
+stage1 (superclass),others,3,120530,0.34733,0.49189
+stage1 (superclass),others,4,86921,0.44761,0.59767
+stage1 (superclass),others,5,65691,0.54811,0.68464
+stage1 (superclass),others,6,55679,0.64922,0.77703
+stage1 (superclass),others,7,54735,0.75062,0.85099
+stage1 (superclass),others,8,78240,0.85575,0.92434
+stage1 (superclass),others,9,142214,0.94749,0.97355
+stage1 (superclass),forest,0,1520469,0.01382,0.00995
+stage1 (superclass),forest,1,78827,0.14196,0.09332
+stage1 (superclass),forest,2,38063,0.24603,0.17471
+stage1 (superclass),forest,3,26792,0.34788,0.25526
+stage1 (superclass),forest,4,22202,0.44893,0.33123
+stage1 (superclass),forest,5,20244,0.54956,0.42225
+stage1 (superclass),forest,6,19876,0.65022,0.51696
+stage1 (superclass),forest,7,21336,0.75029,0.60696
+stage1 (superclass),forest,8,21011,0.84892,0.70987
+stage1 (superclass),forest,9,17164,0.94794,0.86297
+stage2 (subclass + sink),orchards,0,1124860,0.01363,0.01495
+stage2 (subclass + sink),orchards,1,54572,0.14191,0.16285
+stage2 (subclass + sink),orchards,2,26115,0.24534,0.2739
+stage2 (subclass + sink),orchards,3,16275,0.3466,0.38224
+stage2 (subclass + sink),orchards,4,11586,0.44729,0.47212
+stage2 (subclass + sink),orchards,5,8914,0.54797,0.558
+stage2 (subclass + sink),orchards,6,7073,0.64859,0.63453
+stage2 (subclass + sink),orchards,7,5569,0.74789,0.69276
+stage2 (subclass + sink),orchards,8,3616,0.84391,0.71875
+stage2 (subclass + sink),orchards,9,909,0.92743,0.70407
+stage2 (subclass + sink),plantation,0,31137,0.05928,0.08842
+stage2 (subclass + sink),plantation,1,66327,0.1547,0.10852
+stage2 (subclass + sink),plantation,2,103815,0.25248,0.16572
+stage2 (subclass + sink),plantation,3,120807,0.35047,0.26178
+stage2 (subclass + sink),plantation,4,119426,0.44932,0.391
+stage2 (subclass + sink),plantation,5,102918,0.54811,0.50698
+stage2 (subclass + sink),plantation,6,81025,0.64826,0.60729
+stage2 (subclass + sink),plantation,7,74840,0.75113,0.74351
+stage2 (subclass + sink),plantation,8,137383,0.85943,0.92125
+stage2 (subclass + sink),plantation,9,421811,0.94378,0.98725
+stage2 (subclass + sink),field,0,913287,0.02349,0.02158
+stage2 (subclass + sink),field,1,92262,0.1455,0.17955
+stage2 (subclass + sink),field,2,60900,0.24709,0.23658
+stage2 (subclass + sink),field,3,46452,0.34848,0.28309
+stage2 (subclass + sink),field,4,39370,0.44917,0.33393
+stage2 (subclass + sink),field,5,35876,0.54913,0.43268
+stage2 (subclass + sink),field,6,30506,0.64829,0.573
+stage2 (subclass + sink),field,7,23165,0.74692,0.7084
+stage2 (subclass + sink),field,8,13637,0.84371,0.80318
+stage2 (subclass + sink),field,9,4034,0.93026,0.85151
+stage2 (subclass + sink),sink,0,653129,0.04077,0.04054
+stage2 (subclass + sink),sink,1,193046,0.14407,0.16761
+stage2 (subclass + sink),sink,2,116547,0.24706,0.30323
+stage2 (subclass + sink),sink,3,89784,0.34872,0.41813
+stage2 (subclass + sink),sink,4,78587,0.44901,0.51461
+stage2 (subclass + sink),sink,5,62446,0.5472,0.58489
+stage2 (subclass + sink),sink,6,38837,0.6447,0.63903
+stage2 (subclass + sink),sink,7,18528,0.74287,0.68016
+stage2 (subclass + sink),sink,8,6993,0.8408,0.67339
+stage2 (subclass + sink),sink,9,1592,0.93835,0.80905
+stage3 orchards,Durian,0,267,0.05577,0.48689
+stage3 orchards,Durian,1,458,0.15007,0.52402
+stage3 orchards,Durian,2,588,0.25232,0.54422
+stage3 orchards,Durian,3,871,0.35466,0.61079
+stage3 orchards,Durian,4,1344,0.45675,0.67262
+stage3 orchards,Durian,5,2407,0.5545,0.74366
+stage3 orchards,Durian,6,4642,0.657,0.81883
+stage3 orchards,Durian,7,15253,0.7614,0.90133
+stage3 orchards,Durian,8,33904,0.84585,0.93175
+stage3 orchards,Durian,9,1376,0.91141,0.89317
+stage3 orchards,Rambutan,0,60615,0.00649,0.0061
+stage3 orchards,Rambutan,1,279,0.13659,0.15054
+stage3 orchards,Rambutan,2,78,0.24022,0.33333
+stage3 orchards,Rambutan,3,37,0.34696,0.45946
+stage3 orchards,Rambutan,4,27,0.45571,0.74074
+stage3 orchards,Rambutan,5,21,0.54611,0.42857
+stage3 orchards,Rambutan,6,43,0.6555,0.46512
+stage3 orchards,Rambutan,7,10,0.71784,0.5
+stage3 orchards,Rambutan,8,0,,
+stage3 orchards,Rambutan,9,0,,
+stage3 orchards,Mango,0,49659,0.02077,0.00618
+stage3 orchards,Mango,1,5120,0.14125,0.04141
+stage3 orchards,Mango,2,2205,0.24651,0.10295
+stage3 orchards,Mango,3,1483,0.34636,0.15037
+stage3 orchards,Mango,4,948,0.4465,0.20886
+stage3 orchards,Mango,5,653,0.54705,0.30168
+stage3 orchards,Mango,6,450,0.64747,0.37778
+stage3 orchards,Mango,7,315,0.74697,0.44444
+stage3 orchards,Mango,8,217,0.84443,0.47005
+stage3 orchards,Mango,9,60,0.94208,0.28333
+stage3 orchards,Longan,0,58358,0.05007,0.01419
+stage3 orchards,Longan,1,2462,0.12565,0.02762
+stage3 orchards,Longan,2,199,0.23743,0.11558
+stage3 orchards,Longan,3,60,0.34496,0.1
+stage3 orchards,Longan,4,20,0.44369,0.1
+stage3 orchards,Longan,5,9,0.53153,0.0
+stage3 orchards,Longan,6,2,0.62422,0.0
+stage3 orchards,Longan,7,0,,
+stage3 orchards,Longan,8,0,,
+stage3 orchards,Longan,9,0,,
+stage3 orchards,Jackfruit,0,50903,0.05331,0.03538
+stage3 orchards,Jackfruit,1,8905,0.13008,0.05413
+stage3 orchards,Jackfruit,2,972,0.23682,0.04321
+stage3 orchards,Jackfruit,3,241,0.34523,0.07054
+stage3 orchards,Jackfruit,4,71,0.43399,0.11268
+stage3 orchards,Jackfruit,5,7,0.54458,0.0
+stage3 orchards,Jackfruit,6,7,0.64612,0.42857
+stage3 orchards,Jackfruit,7,4,0.76164,0.25
+stage3 orchards,Jackfruit,8,0,,
+stage3 orchards,Jackfruit,9,0,,
+stage3 orchards,Mangosteen,0,60416,0.02441,0.01953
+stage3 orchards,Mangosteen,1,514,0.13422,0.0642
+stage3 orchards,Mangosteen,2,119,0.24112,0.09244
+stage3 orchards,Mangosteen,3,39,0.34394,0.30769
+stage3 orchards,Mangosteen,4,15,0.42978,0.2
+stage3 orchards,Mangosteen,5,3,0.53536,0.33333
+stage3 orchards,Mangosteen,6,4,0.65507,0.0
+stage3 orchards,Mangosteen,7,0,,
+stage3 orchards,Mangosteen,8,0,,
+stage3 orchards,Mangosteen,9,0,,
+stage3 orchards,Langsat,0,61110,0.0001,5e-05
+stage3 orchards,Langsat,1,0,,
+stage3 orchards,Langsat,2,0,,
+stage3 orchards,Langsat,3,0,,
+stage3 orchards,Langsat,4,0,,
+stage3 orchards,Langsat,5,0,,
+stage3 orchards,Langsat,6,0,,
+stage3 orchards,Langsat,7,0,,
+stage3 orchards,Langsat,8,0,,
+stage3 orchards,Langsat,9,0,,
+stage3 plantation,Rubber,0,12405,0.0462,0.01104
+stage3 plantation,Rubber,1,6448,0.1455,0.04699
+stage3 plantation,Rubber,2,4770,0.24828,0.11929
+stage3 plantation,Rubber,3,4267,0.34953,0.20717
+stage3 plantation,Rubber,4,4312,0.45029,0.32931
+stage3 plantation,Rubber,5,4912,0.55141,0.44788
+stage3 plantation,Rubber,6,6166,0.65258,0.53973
+stage3 plantation,Rubber,7,9918,0.75458,0.64106
+stage3 plantation,Rubber,8,22450,0.85871,0.74192
+stage3 plantation,Rubber,9,729852,0.99202,0.91697
+stage3 plantation,OilPalm,0,731713,0.00663,0.08316
+stage3 plantation,OilPalm,1,21215,0.14171,0.25506
+stage3 plantation,OilPalm,2,9633,0.24552,0.35596
+stage3 plantation,OilPalm,3,6026,0.34745,0.45868
+stage3 plantation,OilPalm,4,4840,0.44828,0.54938
+stage3 plantation,OilPalm,5,4303,0.54943,0.67
+stage3 plantation,OilPalm,6,4253,0.65034,0.79191
+stage3 plantation,OilPalm,7,4746,0.7517,0.87821
+stage3 plantation,OilPalm,8,6473,0.85449,0.95195
+stage3 plantation,OilPalm,9,12298,0.95339,0.98927
+stage3 plantation,Coconut,0,805149,0.00166,0.00066
+stage3 plantation,Coconut,1,244,0.13575,0.01639
+stage3 plantation,Coconut,2,56,0.24015,0.0
+stage3 plantation,Coconut,3,25,0.34858,0.0
+stage3 plantation,Coconut,4,14,0.44793,0.0
+stage3 plantation,Coconut,5,8,0.53729,0.0
+stage3 plantation,Coconut,6,3,0.65978,0.0
+stage3 plantation,Coconut,7,1,0.73084,0.0
+stage3 plantation,Coconut,8,0,,
+stage3 plantation,Coconut,9,0,,
+stage3 field,Rice,0,101604,0.01206,0.02446
+stage3 field,Rice,1,6532,0.14465,0.35303
+stage3 field,Rice,2,3940,0.2463,0.53096
+stage3 field,Rice,3,2852,0.34694,0.64586
+stage3 field,Rice,4,2409,0.44925,0.71274
+stage3 field,Rice,5,2421,0.55004,0.81041
+stage3 field,Rice,6,2567,0.65143,0.86054
+stage3 field,Rice,7,3488,0.75313,0.91313
+stage3 field,Rice,8,5686,0.85481,0.95779
+stage3 field,Rice,9,9279,0.95719,0.99052
+stage3 field,Cassava,0,17790,0.03675,0.03266
+stage3 field,Cassava,1,24553,0.15864,0.19134
+stage3 field,Cassava,2,21950,0.24284,0.3046
+stage3 field,Cassava,3,15022,0.3505,0.39336
+stage3 field,Cassava,4,15800,0.45006,0.53044
+stage3 field,Cassava,5,15517,0.54946,0.65593
+stage3 field,Cassava,6,14606,0.64858,0.76366
+stage3 field,Cassava,7,10110,0.74605,0.85559
+stage3 field,Cassava,8,4931,0.84132,0.93531
+stage3 field,Cassava,9,499,0.92114,0.95591
+stage3 field,Pineapple,0,16004,0.04028,0.00544
+stage3 field,Pineapple,1,12606,0.15074,0.03776
+stage3 field,Pineapple,2,15946,0.25215,0.10441
+stage3 field,Pineapple,3,18911,0.35046,0.18709
+stage3 field,Pineapple,4,17443,0.44891,0.27191
+stage3 field,Pineapple,5,14348,0.54787,0.40194
+stage3 field,Pineapple,6,10783,0.64779,0.53872
+stage3 field,Pineapple,7,16256,0.75847,0.64136
+stage3 field,Pineapple,8,17191,0.83733,0.77727
+stage3 field,Pineapple,9,1290,0.92532,0.88682

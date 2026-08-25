@@ -66,6 +66,20 @@ prediction. A pixel routed wrongly cannot be recovered later, because the model 
 reaches was never trained on its true class. This is **error propagation**, and it is
 the cost a cascade pays for specialization.
 
+**Hard routing** — routing by taking the single highest-scoring branch and committing to
+it. **Joint routing** — scoring every branch and combining the probabilities along each
+path, so no branch is discarded early. The two are different decision rules over the same
+trained models, which makes a comparison between them a clean one: nothing else varies.
+
+**Sink** — a class whose purpose is to absorb what does not belong to any other class,
+rather than to name something. Stage 2's fourth subclass is a sink: it receives whatever
+Stage 1 called economic that is not one of the 13 reported crops. Without one, every such
+pixel is forced to become a crop it is not, which is a manufacturer of false positives.
+
+**Calibration** — fitting a transformation that turns a model's raw scores into
+probabilities. Calibration is only meaningful relative to a population: probabilities
+fitted on a rebalanced sample describe that sample's class frequencies, not the world's.
+
 **Run** — one execution of a stage producing artifacts. All artifacts of all stages for
 one arm live in a single run directory, named after the arm.
 
@@ -107,6 +121,20 @@ mix two causes: the model failing, and the land genuinely having changed. A
 **change-filtered** test restricts scoring to parcels whose code is identical across both
 surveys, isolating model failure; the gap between filtered and unfiltered scores measures
 the land-use change itself.
+
+**Class prior** — how frequently each class occurs. A *training* prior is whatever the
+sampling produced; a *true* prior is what the ground actually holds. When they differ, a
+model's scores are systematically shifted, and rare classes are over-predicted in
+proportion to the mismatch.
+
+**Prior correction** — reweighting a model's probabilities after training to move them
+from the training prior toward the true one. It changes the decision rule, never the
+model, so it can be swept cheaply over many settings.
+
+**Operating point** — the particular trade between precision and recall that a chosen
+decision rule lands on. There is no single best one: a rule that stops over-predicting
+rare crops also stops predicting them at all. Quoting a score without saying which
+operating point produced it hides that choice rather than settling it.
 
 ## Notes
 

@@ -1,0 +1,47 @@
+{
+  "smoke": false,
+  "params_stage1": {
+    "n_components": 250,
+    "gamma": 0.02,
+    "C": 1.0
+  },
+  "params_stage23": {
+    "n_components": 600,
+    "gamma": null,
+    "C": 10.0
+  },
+  "pca": false,
+  "class_weight": null,
+  "upsampling": false,
+  "started": "2026-08-25 02:31:50",
+  "folds": {
+    "train": 14842294,
+    "val": 3981206,
+    "test": 5500269,
+    "val_calibrate": 2195222,
+    "val_tune": 1785984
+  },
+  "n_features": 24,
+  "stage1_train": {
+    "1": 1000000,
+    "2": 482151,
+    "3": 800000,
+    "4": 600000
+  },
+  "crossfit_s1_parts": 3,
+  "crossfit_s1_route_agreement": 0.9427,
+  "stage2_sink_train": 1693549,
+  "results": {
+    "hard": {
+      "rows": 5500269,
+      "macro_f1": 0.2283,
+      "weighted_f1": 0.805
+    },
+    "joint": {
+      "rows": 5500269,
+      "macro_f1": 0.2025,
+      "weighted_f1": 0.7843
+    }
+  },
+  "finished": "2026-08-25 08:09:12"
+}

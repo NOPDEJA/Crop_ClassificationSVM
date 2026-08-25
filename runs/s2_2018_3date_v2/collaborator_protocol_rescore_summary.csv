@@ -1,0 +1,3 @@
+﻿population,rows,accuracy,macro_f1,weighted_f1
+natural,24323769,0.6988,0.2654,0.7369
+capped_200k,1572726,0.5442,0.3965,0.552
