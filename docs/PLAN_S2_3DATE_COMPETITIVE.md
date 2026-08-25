@@ -328,22 +328,33 @@ that Platt scaling overfitted the calibration half. The prior-stability table sa
 otherwise.
 
 **The finding that matters: there is no stable `π_true` to correct toward.** The folds are
-disjoint *parcel* samples of one tile, and class prevalence swings wildly between them:
+disjoint *parcel* samples of one tile, and class prevalence swings between them. The table
+is split by support, because the ratio is only meaningful where the counts are:
 
-| class | within | cal | tune | test | max/min |
-|---|---|---|---|---|---|
-| Langsat | orchards | 0.00007 | 0.00013 | 0.00183 | **25.6×** |
-| Oil palm | plantation | 0.03731 | 0.13014 | 0.02685 | **4.9×** |
-| Mango | orchards | 0.16305 | 0.04404 | 0.12820 | 3.7× |
-| Longan | orchards | 0.04533 | 0.01410 | 0.01642 | 3.2× |
-| Rice | field | 0.09772 | 0.27900 | 0.13533 | 2.9× |
-| Jackfruit | orchards | 0.05920 | 0.03634 | 0.09658 | 2.7× |
-| Rambutan | orchards | 0.00673 | 0.00889 | 0.01561 | 2.3× |
-| Rubber | plantation | 0.96099 | 0.86904 | 0.97227 | 1.1× |
+*Swings on ample support — these carry the finding:*
 
-Even the four superclasses move by 1.15–2.10×. So Stage 3's calibrators are not broken:
-they faithfully learned the calibration half's mix, and the tuning half is simply a
-different mix. The "miscalibration" is the fold difference, not a modelling fault.
+| class | within | cal | tune | test | max/min | smallest count |
+|---|---|---|---|---|---|---|
+| Oil palm | plantation | 0.03731 | 0.13014 | 0.02685 | **4.9×** | 42,868 px |
+| Mango | orchards | 0.16305 | 0.04404 | 0.12820 | **3.7×** | 3,045 px |
+| Rice | field | 0.09772 | 0.27900 | 0.13533 | **2.9×** | 21,239 px |
+| Jackfruit | orchards | 0.05920 | 0.03634 | 0.09658 | 2.7× | 2,513 px |
+| Pineapple | field | 0.49509 | 0.30686 | 0.38009 | 1.6× | 49,945 px |
+| Rubber | plantation | 0.96099 | 0.86904 | 0.97227 | 1.1× | 732,519 px |
+
+Even the four superclasses move by 1.15–2.10× on millions of pixels each.
+
+*Ratios too noisy to cite — recorded so they are not mistaken for evidence:*
+Langsat 25.6× rests on **4 / 9 / 191 pixels** across the three samples and on roughly one
+parcel per fold; Longan (975 px minimum), Rambutan (375) and Coconut (695) are similarly
+thin. **An earlier version of this section led with the Langsat 25.6× figure. That was
+wrong** — it is small-count noise dressed as a result, and it is exactly the kind of
+number this document exists to catch. The finding does not need it: Oil palm swinging
+4.9× on 42,868–109,693 pixels establishes it on its own.
+
+So Stage 3's calibrators are not broken: they faithfully learned the calibration half's
+mix, and the tuning half is simply a different mix. The "miscalibration" is the fold
+difference, not a modelling fault.
 
 **Three consequences, and they are load-bearing.**
 
