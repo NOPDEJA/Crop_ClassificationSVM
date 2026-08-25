@@ -308,6 +308,64 @@ natural-prior validation rows, so a mathematically correct correction toward tho
 priors should be a near no-op. If the calibrators are already good, exponent tuning
 is **operating-point tuning**, not prior correction, and the plan says so.
 
+#### M1 RESULT — run 2026-08-25, `m1_calibration_audit.py`, no training
+
+Artifacts: `runs/s2_2018_3date_parcel_m0/m1_calibration.csv`, `m1_reliability.csv`,
+`m1_prior_stability.csv`.
+
+*Departure from the plan, deliberate.* M1 as written audits "on the calibration half" —
+the rows the sigmoids were fitted on, where scores are optimistic by construction. Both
+halves are reported; the tuning half is the honest number and the gap is the overfit.
+
+**Stages 1 and 2 are well calibrated.** Predicted-over-observed prevalence ratios sit at
+0.86–1.29 (Stage 1) and 0.91–1.26 (Stage 2) with ECE 0.002–0.052, on *both* halves. There
+is no systematic distortion for a prior correction to repair at the routing stages.
+
+**Stage 3 looks miscalibrated out-of-sample, but the cause is not the calibrator.** On the
+tuning half the experts over-predict rare crops badly — Longan 3.58×, Mango 2.43×, Langsat
+2.08×, Jackfruit 1.80× — while under-predicting Oil palm at 0.39×. The obvious reading is
+that Platt scaling overfitted the calibration half. The prior-stability table says
+otherwise.
+
+**The finding that matters: there is no stable `π_true` to correct toward.** The folds are
+disjoint *parcel* samples of one tile, and class prevalence swings wildly between them:
+
+| class | within | cal | tune | test | max/min |
+|---|---|---|---|---|---|
+| Langsat | orchards | 0.00007 | 0.00013 | 0.00183 | **25.6×** |
+| Oil palm | plantation | 0.03731 | 0.13014 | 0.02685 | **4.9×** |
+| Mango | orchards | 0.16305 | 0.04404 | 0.12820 | 3.7× |
+| Longan | orchards | 0.04533 | 0.01410 | 0.01642 | 3.2× |
+| Rice | field | 0.09772 | 0.27900 | 0.13533 | 2.9× |
+| Jackfruit | orchards | 0.05920 | 0.03634 | 0.09658 | 2.7× |
+| Rambutan | orchards | 0.00673 | 0.00889 | 0.01561 | 2.3× |
+| Rubber | plantation | 0.96099 | 0.86904 | 0.97227 | 1.1× |
+
+Even the four superclasses move by 1.15–2.10×. So Stage 3's calibrators are not broken:
+they faithfully learned the calibration half's mix, and the tuning half is simply a
+different mix. The "miscalibration" is the fold difference, not a modelling fault.
+
+**Three consequences, and they are load-bearing.**
+
+1. **M2 is operating-point tuning. It is not prior correction, and the report must not
+   call it that.** Prior correction presumes `π_true` is a property of the world that the
+   training sample distorted. Here `π_true` is a property of *which parcels you drew*.
+   There is nothing to correct toward.
+2. **An exponent selected on the tuning half may not transfer to fold 2 at all.** The
+   tuning half's Oil-palm share is 4.8× the test fold's, and its Langsat share is a
+   fourteenth. Tuning a rare-class decision rule on that half is fitting the sample, not
+   the problem. M2 must therefore report its selected point *and* what that point scores
+   under the test fold's mix, and must treat any rare-crop gain as unproven.
+3. **It compounds the ±0.014 interval from M0.** Not only is a single macro F1 imprecise,
+   the class mix it is computed over is itself one draw. Any per-crop claim for the seven
+   rare crops rests on a prevalence that moves by 2–25× depending on which parcels landed
+   in the fold.
+
+This also retires a hypothesis the project has carried for a while: the
+`prior-correction-sweep-regime` work treated the flat response surface as a property of
+the correction. Part of it is more likely this — the target being corrected toward was
+never stable.
+
 ### M2 — Operating-point (exponent) sweep on the parcel run *(minutes per cell)*
 The (α₂, α₃) exponent sweep applied to the parcel run's probability arrays — with the
 sink included in the derivation and the denominator taken from the calibration
