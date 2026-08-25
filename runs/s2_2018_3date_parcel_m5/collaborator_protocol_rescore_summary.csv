@@ -1,0 +1,4 @@
+﻿variant,rows,survivor_rate,accuracy,macro_f1_14,macro_f1_13_crops,weighted_f1
+water_only,1626372,0.992,0.7045,0.3078,0.2673,0.6906
+water_plus_others,1152302,0.7028,0.6133,0.306,0.2757,0.6021
+ours_strict_full_fold2,5500269,1.0,0.7874,0.2743,0.2344,0.7961

@@ -28,14 +28,52 @@ WHAT IS DIFFERENT FROM THE PUBLISHED ARM
   hyperparams    frozen at the values the v2 searches chose, so no inner CV runs
                  and nothing is selected on pixel-level folds
 
-Per-class decision thresholds are deliberately NOT tuned here. Tuning them on the
-same fold used for calibration would make them in-sample to it, and several
-classes lack the validation support to tune against at all (Langsat has 13 rows).
-The decision rule is plain argmax; thresholds are deferred work.
+PROTOCOL REPAIRS, docs/PLAN_S2_3DATE_COMPETITIVE.md section 3
+  3.1  fold 1 is halved BY PARCEL into a calibration half and a tuning half; the
+       sigmoids see only the calibration half, so an operating point selected
+       later on the tuning half is not selected on rows the calibrator used
+  3.2  validation-fold probabilities are saved for every stage, so calibration
+       can be audited and an operating point chosen without reading fold 2
+  3.3  train/val parcel disjointness is asserted -- hardening, since it already
+       holds, but fold 1 is now subdivided and a silent break would matter
+  3.5  Stage-2 training candidates come from CROSS-FITTED Stage-1 routes:
+       fold 0 is partitioned by parcel into CROSSFIT_S1 parts and each part is
+       routed by a base fitted on the others, so no training row is routed by a
+       model that saw it
+
+Per-class decision thresholds are deliberately NOT tuned here. Several classes
+lack the validation support to tune against at all (Langsat has 13 rows across
+the whole of fold 1, so its tuning half has at most a handful). The decision rule
+is plain argmax; thresholds are deferred work, and the tuning half exists so that
+work has somewhere honest to happen.
 
 Env:
   SMOKE=1        subsample rows for a fast end-to-end check
   ARM_OUT=<dir>  output directory (default ./runs/s2_2018_3date_parcel)
+  CROSSFIT_S1=k  parcel-grouped parts for out-of-fold Stage-1 routes (default 3;
+                 0 disables and restores the in-sample routes, with a warning)
+  NPZ_OVERRIDE   feature matrix to use instead of config.NPZ (M3's 30-column one)
+  P3_COMPONENTS  Nystroem capacity for the Stage-3 experts only (default 600).
+                 M4 found an interior optimum at 1200 for orchards; Stages 1 and
+                 2 are NOT raised, because their fit sets are 5-17x larger and the
+                 Nystroem block is n_rows x n_components x 8 bytes -- Stage 1 at
+                 1200 would need 27.7 GB.
+  SKIP_TEST=1    do not predict or score fold 2 at all. Fold 2 gets ONE read, on a
+                 predeclared configuration; anything exploratory after that must be
+                 judged on fold 1's tuning half instead, from the *_prob_val.npy
+                 arrays. Also removes roughly 40% of the runtime, since the
+                 test-fold prediction passes are the bulk of it.
+  MERGE_TREE=1   collapse orchards+plantation into one "tree crops" subclass, so
+                 Stage 2 becomes tree/field/sink and Stage 3 has a 10-class tree
+                 expert. See the block above GROUPS for the measured motivation.
+  CLASS_WEIGHT=sqrt
+                 cost-sensitive fitting for Stage 2 and the Stage-3 experts:
+                 w_c = sqrt(n_max / n_c) over the POST-CAP counts of the model
+                 being fitted. Unset (the default) reproduces M5 exactly.
+  ALPHA2/ALPHA3  operating-point exponents applied at compose time (default 0,
+                 which is plain argmax). M2 selected 0.2 / 0.7 on fold 1's tuning
+                 half. Reweights each class from the calibration population's
+                 prior toward uniform; it is a decision rule, not a refit.
 """
 import json
 import os
@@ -60,6 +98,7 @@ from config import (NPZ, RANDOM_STATE, SAMPLES_PER_LU,
 # Config
 # -----------------------
 SMOKE = os.environ.get("SMOKE", "0") == "1"
+NPZ = os.environ.get("NPZ_OVERRIDE") or NPZ
 OUT = os.environ.get("ARM_OUT", "./runs/s2_2018_3date_parcel" + ("_smoke" if SMOKE else ""))
 SPLIT_ASSIGN = "./splits/split_assign.npy"
 PARCEL_ID = "./splits/parcel_id_row.npy"
@@ -70,23 +109,88 @@ PARCEL_ID = "./splits/parcel_id_row.npy"
 # what removes the pixel-level inner CV entirely.
 P1 = dict(n_components=250, gamma=0.02, C=1.0)
 P23 = dict(n_components=600, gamma=None, C=10.0)
+P3 = dict(P23, n_components=int(os.environ.get("P3_COMPONENTS", 600)))
+ALPHA2 = float(os.environ.get("ALPHA2", 0.0))
+ALPHA3 = float(os.environ.get("ALPHA3", 0.0))
 
 CHUNK = int(os.environ.get("PRED_CHUNK_OVERRIDE", 400_000))
 CALIB_MAX = 300_000       # random (NOT per-class) subsample -> natural priors kept
+CROSSFIT_S1 = int(os.environ.get("CROSSFIT_S1", "3"))   # parcel-grouped parts; 0 disables
+SKIP_TEST = os.environ.get("SKIP_TEST", "0") == "1"     # keep fold 2 unread
+
+# CLASS_WEIGHT=sqrt turns on tempered cost-sensitive fitting for Stage 2 and the
+# Stage-3 experts. Stage 1 is left alone: its four superclasses are capped to
+# within a factor of two of each other, so there is no imbalance there to fight,
+# and changing candidacy would change what Stage 2 and 3 even see.
+#
+# The weight is w_c = sqrt(n_max / n_c) over the counts of the fit population
+# AFTER capping, per fitted model -- Stage 2 over its four groups including the
+# sink, each Stage-3 expert over its own classes only. Full inverse-frequency
+# weighting (alpha = 1) is not used: with 6,685:1 raw imbalance it hands a
+# handful of Langsat pixels the same total mass as all of rubber, and the
+# operating-point sweep already showed that pushing all the way to uniform
+# costs more macro F1 than it buys. sqrt is the standard tempering.
+#
+# It is delivered as a sample_weight vector rather than class_weight because the
+# models are OneVsRestClassifier(Pipeline(...)): LabelBinarizer turns every
+# sub-problem into 0/1, so a class_weight dict keyed by LU code cannot reach it,
+# and one dict cannot vary across the sub-problems. A per-row weight w_{y_i} is
+# constant across sub-problems and reproduces the usual cost-sensitive multiclass
+# SVM: in the binary problem for class c the positives carry w_c and each
+# negative carries its own class's weight. Routing it through the pipeline needs
+# sklearn's metadata routing, which is enabled ONLY on this path so the default
+# run is byte-for-byte the M5 code path.
+CLASS_WEIGHT = os.environ.get("CLASS_WEIGHT", "")
+WEIGHTED = CLASS_WEIGHT == "sqrt"
+if CLASS_WEIGHT and not WEIGHTED:
+    raise SystemExit(f"CLASS_WEIGHT={CLASS_WEIGHT!r} is not a scheme I know; use 'sqrt'")
+if WEIGHTED:
+    import sklearn
+    sklearn.set_config(enable_metadata_routing=True)
 ECON = {2101, 2204, 2205, 2302, 2303, 2403, 2404, 2405, 2407, 2413, 2416, 2419, 2420}
 WATER = {4101, 4102, 4103, 4201, 4202, 4203}
 FOREST = {3100, 3101, 3200, 3201, 3300, 3301, 3401, 3501}
-GROUPS = {1: {2403, 2404, 2407, 2413, 2416, 2419, 2420},   # orchards
-          2: {2302, 2303, 2405},                            # plantation
-          3: {2101, 2204, 2205}}                            # field
+# MERGE_TREE=1 collapses orchards and plantation into one "tree crops" subclass.
+#
+# Measured motivation (diagnose_cascade_waterfall.py on M0, fold 2): Stage 2 is
+# where the cascade dies. It loses 27-75% of every crop except rubber, and the
+# routing table shows every orchard crop going predominantly to PLANTATION --
+# Rambutan 0.641, Jackfruit 0.653, Langsat 0.523, Longan 0.490, Durian 0.477 --
+# where the expert can only emit rubber, oil palm or coconut. That is why
+# Rambutan, Longan, Jackfruit and Langsat score exactly 0.0000 end to end while
+# the orchards expert scores them 0.07-0.26 in isolation: they never reach it.
+#
+# Merging the two makes that particular misroute harmless. Projected Stage-2
+# recall from the same routing shares: Rambutan 0.138 -> 0.693, Jackfruit
+# 0.205 -> 0.829, Durian 0.353 -> 0.786, Longan 0.318 -> 0.773, with rubber
+# unchanged at 0.875 -> 0.879.
+#
+# This does not delete the orchards/plantation discrimination, it relocates it
+# into a 10-class expert trained on CAPPED, near-balanced data, instead of a
+# 4-way router whose argmax is dominated by a 68.5% plantation prior. That is the
+# bet, and it is what the probe has to test.
+#
+# The subclass is routing-only and never reported (CONTEXT.md), so this changes
+# no published taxonomy, and the hierarchy stays three-stage as the plan requires.
+MERGE_TREE = os.environ.get("MERGE_TREE", "0") == "1"
+if MERGE_TREE:
+    GROUPS = {1: {2403, 2404, 2407, 2413, 2416, 2419, 2420,
+                  2302, 2303, 2405},                        # tree crops
+              3: {2101, 2204, 2205}}                        # field
+    GNAME = {1: "tree", 3: "field", 4: "sink"}
+else:
+    GROUPS = {1: {2403, 2404, 2407, 2413, 2416, 2419, 2420},   # orchards
+              2: {2302, 2303, 2405},                            # plantation
+              3: {2101, 2204, 2205}}                            # field
+    GNAME = {1: "orchards", 2: "plantation", 3: "field", 4: "sink"}
 SINK = 4
-GNAME = {1: "orchards", 2: "plantation", 3: "field", 4: "sink"}
 CROPS = sorted(ECON)
 
 os.makedirs(OUT, exist_ok=True)
 rng = np.random.default_rng(RANDOM_STATE)
 manifest = {"smoke": SMOKE, "params_stage1": P1, "params_stage23": P23,
-            "pca": False, "class_weight": None, "upsampling": False,
+            "params_stage3": P3, "npz": NPZ, "merge_tree": MERGE_TREE,
+            "pca": False, "class_weight": CLASS_WEIGHT or None, "upsampling": False,
             "started": time.strftime("%Y-%m-%d %H:%M:%S")}
 
 
@@ -96,14 +200,30 @@ def log(*a):
 
 def base_pipe(p):
     """No PCA. No class_weight. Nystroem gamma=None means 1/n_features."""
+    scaler, svc = StandardScaler(), LinearSVC(C=p["C"], class_weight=None,
+                                              max_iter=5000,
+                                              random_state=RANDOM_STATE)
+    if WEIGHTED:
+        # only the SVC consumes the weights; the scaler must decline explicitly
+        # or routing refuses to pass anything through the pipeline at all
+        scaler = scaler.set_fit_request(sample_weight=False)
+        svc = svc.set_fit_request(sample_weight=True)
     return Pipeline([
         ("imputer", SimpleImputer(strategy="median")),
-        ("scaler", StandardScaler()),
+        ("scaler", scaler),
         ("nyst", Nystroem(kernel="rbf", n_components=p["n_components"],
                           gamma=p["gamma"], random_state=RANDOM_STATE)),
-        ("svc", LinearSVC(C=p["C"], class_weight=None, max_iter=5000,
-                          random_state=RANDOM_STATE)),
+        ("svc", svc),
     ])
+
+
+def tempered_weights(labels, tag):
+    """w_c = sqrt(n_max / n_c) over the post-cap counts actually being fitted."""
+    cls, cnt = np.unique(labels, return_counts=True)
+    w = np.sqrt(cnt.max() / cnt)
+    log(f"  {tag}: class weights (post-cap counts) " + "  ".join(
+        f"{int(c)}:{n:,}->{v:.2f}" for c, n, v in zip(cls, cnt, w)))
+    return dict(zip(cls.tolist(), w.tolist()))
 
 
 class PlattCalibrated:
@@ -159,11 +279,24 @@ class PlattCalibrated:
         return self.classes_[self.predict_proba(X).argmax(1)]
 
 
-def fit_calibrated(X, y, fit_idx, cal_idx, p, tag):
-    """Fit the base on fit_idx (fold 0), then only the sigmoids on cal_idx (fold 1)."""
+def fit_calibrated(X, y, fit_idx, cal_idx, p, tag, weighted=False):
+    """Fit the base on fit_idx (fold 0), then only the sigmoids on cal_idx (fold 1).
+
+    `weighted` is per call, not global: only Stage 2 and the Stage-3 experts get
+    the cost-sensitive treatment, and the sigmoids are never weighted -- they are
+    fitted on natural-prior validation rows, and reweighting them would move the
+    probabilities off the calibration prior the operating-point sweep divides by.
+    """
     log(f"  {tag}: base fit on {fit_idx.size:,} rows (fold 0)")
     base = OneVsRestClassifier(base_pipe(p))
-    base.fit(X[fit_idx], y[fit_idx])
+    if weighted and WEIGHTED:
+        wmap = tempered_weights(y[fit_idx], tag)
+        manifest.setdefault("class_weights", {})[tag] = {
+            str(k): round(v, 4) for k, v in wmap.items()}
+        sw = np.array([wmap[c] for c in y[fit_idx]], dtype=np.float64)
+        base.fit(X[fit_idx], y[fit_idx], sample_weight=sw)
+    else:
+        base.fit(X[fit_idx], y[fit_idx])
 
     if cal_idx.size > CALIB_MAX:      # random, not per-class: preserves priors
         cal_idx = np.sort(rng.choice(cal_idx, CALIB_MAX, replace=False))
@@ -191,6 +324,9 @@ def chunked_proba(model, X, idx):
     return out
 
 
+CAPS1 = {1: CAP_ECON, 2: CAP_WATER, 4: CAP_FOREST, 3: CAP_OTHERS}
+
+
 def cap(idx, labels, per_class, limit_total=None):
     """Cap per class. Applied to TRAIN rows only, never to val or test."""
     parts = []
@@ -201,6 +337,74 @@ def cap(idx, labels, per_class, limit_total=None):
     if limit_total and out.size > limit_total:
         out = rng.choice(out, limit_total, replace=False)
     return np.sort(out)
+
+
+def stage1_cap(idx, y, sup):
+    """The Stage-1 sampling rule: per-LU cap, then per-superclass cap."""
+    lu = cap(idx, y[idx], SAMPLES_PER_LU)
+    parts = []
+    for sc, lim in CAPS1.items():
+        w = lu[sup[lu] == sc]
+        parts.append(w if w.size <= lim else rng.choice(w, lim, replace=False))
+    return np.sort(np.concatenate(parts))
+
+
+def halve_by_parcel(idx, y, parcels):
+    """Split `idx` into two parcel-disjoint halves, stratified by parcel label.
+
+    Fold 1 does double duty in the published run: the Platt sigmoids are fitted
+    on it, and it is also the only fold left to tune an operating point on.
+    Selecting on rows the calibrator already saw is optimistic model selection,
+    so fold 1 is halved here -- by parcel, or the halves would share pixels.
+
+    The halving is stratified by each parcel's label because the rare crops have
+    so few validation parcels that an unstratified coin flip can hand a class
+    entirely to one half, leaving the calibrator with no positives to fit.
+    """
+    pid = parcels[idx]
+    uniq, inv = np.unique(pid, return_inverse=True)
+    order = np.argsort(inv, kind="stable")
+    starts = np.searchsorted(inv[order], np.arange(uniq.size))
+    plab = y[idx][order][starts]          # a parcel carries one LU code
+
+    take = np.zeros(uniq.size, dtype=bool)
+    for c in np.unique(plab):
+        w = np.flatnonzero(plab == c)
+        w = w[rng.permutation(w.size)]
+        take[w[: w.size // 2]] = True
+    m = take[inv]
+    return idx[m], idx[~m]
+
+
+def crossfit_stage1_econ(X, y, sup, tr, cal_idx, parcels, k):
+    """Out-of-fold Stage-1 economic routes for the TRAINING fold.
+
+    Stage 2's training population is "whatever Stage 1 called economic". Taking
+    that from the deployed Stage-1 model makes it an in-sample route: fit1 is a
+    subset of fold 0, so the model has already seen most of the rows it routes,
+    and Stage 2 is then fitted on a candidate distribution cleaner than any it
+    will meet at inference. Here fold 0 is partitioned BY PARCEL into k parts
+    and each part is routed by a base fitted on the other k-1, so no training
+    row is routed by a model that saw it.
+
+    Each part's model is calibrated the same way the deployed one is -- sigmoids
+    on fold 1's calibration half -- because the deployed route is an argmax over
+    CALIBRATED probabilities, and per-class Platt scaling is monotone within a
+    class but can still reorder a four-way argmax across classes.
+    """
+    uniq = np.unique(parcels[tr])
+    part_of_parcel = rng.permutation(uniq.size) % k
+    part = part_of_parcel[np.searchsorted(uniq, parcels[tr])]
+    out = np.zeros(tr.size, dtype=np.int32)
+    for kk in range(k):
+        hold = part == kk
+        fit_idx = stage1_cap(tr[~hold], y, sup)
+        log(f"  crossfit s1 part {kk + 1}/{k}: fit {fit_idx.size:,} -> route {int(hold.sum()):,}")
+        mk = fit_calibrated(X, sup, fit_idx, cal_idx, P1, f"crossfit-s1-{kk + 1}")
+        pk = chunked_proba(mk, X, tr[hold])
+        out[hold] = mk.classes_[pk.argmax(1)]
+        del mk, pk
+    return out
 
 
 if __name__ == "__main__":
@@ -226,7 +430,21 @@ if __name__ == "__main__":
     # a parcel must not straddle folds
     assert np.intersect1d(parcels[tr], parcels[te]).size == 0, "train/test share a parcel"
     assert np.intersect1d(parcels[va], parcels[te]).size == 0, "val/test share a parcel"
-    manifest["folds"] = {"train": int(tr.size), "val": int(va.size), "test": int(te.size)}
+    # Hardening, not a bug fix: the property already holds in the current split.
+    # It is asserted so a future change to the split builder cannot break it
+    # silently -- which matters more now that fold 1 is subdivided below.
+    assert np.intersect1d(parcels[tr], parcels[va]).size == 0, "train/val share a parcel"
+
+    # Fold 1 is halved by parcel: the sigmoids see va_cal, and va_tune is left
+    # untouched so an operating point can be selected on it later without being
+    # selected on rows the calibrator already used.
+    va_cal, va_tune = halve_by_parcel(va, y, parcels)
+    assert np.intersect1d(parcels[va_cal], parcels[va_tune]).size == 0, "cal/tune share a parcel"
+    log(f"  fold 1 halved by parcel: calibrate {va_cal.size:,} / tune {va_tune.size:,}")
+    np.save(f"{OUT}/val_cal_idx.npy", va_cal)
+    np.save(f"{OUT}/val_tune_idx.npy", va_tune)
+    manifest["folds"] = {"train": int(tr.size), "val": int(va.size), "test": int(te.size),
+                         "val_calibrate": int(va_cal.size), "val_tune": int(va_tune.size)}
 
     # valid_cols from TRAIN ONLY -- deriving it from the combined sample would let
     # the test fold influence which features exist.
@@ -244,19 +462,13 @@ if __name__ == "__main__":
           np.where(np.isin(y, list(WATER)), 2,
           np.where(np.isin(y, list(FOREST)), 4, 3))).astype(np.int32)
 
-    tr_lu = cap(tr, y[tr], SAMPLES_PER_LU)             # per-LU cap, train only
-    caps1 = {1: CAP_ECON, 2: CAP_WATER, 4: CAP_FOREST, 3: CAP_OTHERS}
-    parts = []
-    for s, lim in caps1.items():
-        w = tr_lu[sup[tr_lu] == s]
-        parts.append(w if w.size <= lim else rng.choice(w, lim, replace=False))
-    fit1 = np.sort(np.concatenate(parts))
+    fit1 = stage1_cap(tr, y, sup)                      # per-LU then per-superclass cap
     log(f"  train rows after caps: {fit1.size:,}  dist "
         f"{dict(zip(*np.unique(sup[fit1], return_counts=True)))}")
     manifest["stage1_train"] = {int(k): int(v) for k, v in
                                 zip(*np.unique(sup[fit1], return_counts=True))}
 
-    m1 = fit_calibrated(X, sup, fit1, va, P1, "stage1")
+    m1 = fit_calibrated(X, sup, fit1, va_cal, P1, "stage1")
     joblib.dump(m1, f"{OUT}/stage1_model.joblib")
 
     # Stage 1 predictions are needed on ALL folds: Stage 2 builds its training
@@ -267,12 +479,36 @@ if __name__ == "__main__":
     s1_pred = m1.classes_[p1.argmax(1)].astype(np.int32)
     np.save(f"{OUT}/stage1_pred.npy", s1_pred)
     np.save(f"{OUT}/stage1_prob_test.npy", p1[te])
+    # The validation fold's probabilities are saved too. Without them there is
+    # nowhere honest to audit calibration or select an operating point: the test
+    # fold is read once, at the end, on a predeclared configuration.
+    np.save(f"{OUT}/stage1_prob_val.npy", p1[va])
+    np.save(f"{OUT}/stage1_val_idx.npy", va)
     econ_p_all = p1[:, list(m1.classes_).index(1)]
     del p1
 
     # ---------------- Stage 2 ----------------
     log("STAGE 2: subclass + sink")
-    cand = np.flatnonzero(s1_pred == 1)          # everything Stage 1 called economic
+    route = s1_pred.copy()
+    if CROSSFIT_S1 >= 2:
+        log(f"  cross-fitting stage-1 routes over fold 0 in {CROSSFIT_S1} parcel-grouped parts")
+        route[tr] = crossfit_stage1_econ(X, y, sup, tr, va_cal, parcels, CROSSFIT_S1)
+        agree = float((route[tr] == s1_pred[tr]).mean())
+        log(f"  out-of-fold vs in-sample stage-1 route agreement on fold 0: {agree:.3%}")
+        manifest["crossfit_s1_parts"] = CROSSFIT_S1
+        manifest["crossfit_s1_route_agreement"] = round(agree, 4)
+        # Persist the out-of-fold routes. The agreement scalar says how OFTEN the
+        # two routings differ; it does not say what that costs Stage 2. Answering
+        # that needs both candidate populations from the SAME run -- comparing
+        # against another run's sink share confounds it with whatever else that
+        # run changed, which is exactly the trap the M0 vs baseline comparison
+        # fell into on 2026-08-25.
+        np.save(f"{OUT}/stage1_route_oof_train.npy", route[tr])
+        np.save(f"{OUT}/stage1_train_idx.npy", tr)
+    else:
+        log("  WARNING: CROSSFIT_S1 disabled -- stage-2 training routes are IN-SAMPLE")
+        manifest["crossfit_s1_parts"] = 0
+    cand = np.flatnonzero(route == 1)            # everything Stage 1 called economic
     g_of = np.zeros(y.size, dtype=np.int32)
     for g, codes in GROUPS.items():
         g_of[np.isin(y, list(codes))] = g
@@ -280,8 +516,24 @@ if __name__ == "__main__":
     log(f"  candidates {cand.size:,}; sink share "
         f"{(g_of[cand] == SINK).mean():.3%}")
 
+    if CROSSFIT_S1 >= 2:
+        # The same fold-0 rows under BOTH routings, from the SAME Stage-1 model,
+        # so the difference is the cross-fitting and nothing else. This is what
+        # the agreement scalar cannot tell you: how much contamination the
+        # in-sample routes were hiding from Stage 2. Comparing sink shares across
+        # two runs instead would confound it with every other change between them.
+        oof_tr = tr[route[tr] == 1]
+        ins_tr = tr[s1_pred[tr] == 1]
+        s_oof = float((g_of[oof_tr] == SINK).mean())
+        s_ins = float((g_of[ins_tr] == SINK).mean())
+        log(f"  fold-0 stage-2 candidates: out-of-fold {oof_tr.size:,} (sink {s_oof:.3%})"
+            f" vs in-sample {ins_tr.size:,} (sink {s_ins:.3%})")
+        manifest["stage2_train_sink_share_oof"] = round(s_oof, 4)
+        manifest["stage2_train_sink_share_insample"] = round(s_ins, 4)
+
     c_tr = np.intersect1d(cand, tr, assume_unique=False)
     c_va = np.intersect1d(cand, va)
+    c_va_cal = np.intersect1d(cand, va_cal)
     c_te = np.intersect1d(cand, te)
     for nm, a in (("train", c_tr), ("val", c_va), ("test", c_te)):
         cnt = dict(zip(*np.unique(g_of[a], return_counts=True)))
@@ -291,12 +543,19 @@ if __name__ == "__main__":
     manifest["stage2_sink_train"] = int((g_of[c_tr] == SINK).sum())
 
     fit2 = cap(c_tr, g_of[c_tr], PER_GROUP_CAP)
-    m2 = fit_calibrated(X, g_of, fit2, c_va, P23, "stage2")
+    m2 = fit_calibrated(X, g_of, fit2, c_va_cal, P23, "stage2", weighted=True)
     joblib.dump(m2, f"{OUT}/stage2_model.joblib")
-    log("  predicting stage 2 on test candidates")
-    p2 = chunked_proba(m2, X, c_te)
-    np.save(f"{OUT}/stage2_prob_test.npy", p2)
-    np.save(f"{OUT}/stage2_test_idx.npy", c_te)
+    if SKIP_TEST:
+        p2 = None
+        log("  SKIP_TEST: fold 2 left unread")
+    else:
+        log("  predicting stage 2 on test candidates")
+        p2 = chunked_proba(m2, X, c_te)
+        np.save(f"{OUT}/stage2_prob_test.npy", p2)
+        np.save(f"{OUT}/stage2_test_idx.npy", c_te)
+    log("  predicting stage 2 on validation candidates")
+    np.save(f"{OUT}/stage2_prob_val.npy", chunked_proba(m2, X, c_va))
+    np.save(f"{OUT}/stage2_val_idx.npy", c_va)
 
     # ---------------- Stage 3 ----------------
     log("STAGE 3: crop within group (experts selected by TRUE membership)")
@@ -304,30 +563,79 @@ if __name__ == "__main__":
     for g, codes in GROUPS.items():
         g_tr = np.intersect1d(tr, np.flatnonzero(np.isin(y, list(codes))))
         g_va = np.intersect1d(va, np.flatnonzero(np.isin(y, list(codes))))
+        g_va_cal = np.intersect1d(va_cal, np.flatnonzero(np.isin(y, list(codes))))
         log(f"  {GNAME[g]}: train {g_tr.size:,} val {g_va.size:,} "
             f"classes {sorted(set(y[g_tr].tolist()))}")
         assert g_tr.size and g_va.size
         assert len(set(y[g_tr].tolist())) == len(codes), f"{GNAME[g]} lost a class in train"
         fit3 = cap(g_tr, y[g_tr], PER_LU_CAP)        # cap only; NO upsampling
-        m3 = fit_calibrated(X, y, fit3, g_va, P23, f"stage3-{GNAME[g]}")
+        m3 = fit_calibrated(X, y, fit3, g_va_cal, P3, f"stage3-{GNAME[g]}",
+                            weighted=True)
         joblib.dump(m3, f"{OUT}/stage3_{GNAME[g]}_model.joblib")
         experts[g], e_classes[g] = m3, m3.classes_
 
     # every expert scores every test candidate, which is what the joint rule needs
     p3 = {}
     for g in GROUPS:
-        log(f"  predicting {GNAME[g]} on all test candidates")
-        p3[g] = chunked_proba(experts[g], X, c_te)
-        np.save(f"{OUT}/stage3_{GNAME[g]}_prob_test.npy", p3[g])
+        if not SKIP_TEST:
+            log(f"  predicting {GNAME[g]} on all test candidates")
+            p3[g] = chunked_proba(experts[g], X, c_te)
+            np.save(f"{OUT}/stage3_{GNAME[g]}_prob_test.npy", p3[g])
+        log(f"  predicting {GNAME[g]} on all validation candidates")
+        np.save(f"{OUT}/stage3_{GNAME[g]}_prob_val.npy", chunked_proba(experts[g], X, c_va))
 
     # ---------------- compose on the TEST FOLD ONLY ----------------
+    if SKIP_TEST:
+        manifest["skip_test"] = True
+        manifest["finished"] = time.strftime("%Y-%m-%d %H:%M:%S")
+        with open(f"{OUT}/manifest.json", "w") as f:
+            json.dump(manifest, f, indent=2)
+        log("SKIP_TEST: fold 2 never predicted or scored. Judge this run on fold 1's"
+            " tuning half from the *_prob_val.npy arrays.")
+        log("wrote", f"{OUT}/manifest.json")
+        log("DONE")
+        raise SystemExit(0)
+
     log("composing cascade on fold 2")
+
+    # Operating point (M2). Reweights each class from the CALIBRATION population's
+    # prior toward uniform: p' proportional to p * ((1/K) / pi_cal(c)) ** alpha.
+    # The denominator is the calibration prior, NOT the capped training prior --
+    # the sigmoids were fitted on natural-prior rows, so dividing by the training
+    # prior would re-apply a correction calibration has already made. alpha=0
+    # leaves the argmax untouched, so the default reproduces plain hard routing.
+    def reweight(P, ratio, alpha):
+        if alpha == 0.0:
+            return P
+        out = P * (ratio ** alpha)
+        tot = out.sum(1, keepdims=True)
+        tot[tot == 0] = 1.0
+        return out / tot
+
+    pi2 = np.array([(g_of[c_va_cal] == g).mean() for g in m2.classes_])
+    ratio2 = ((1.0 / m2.classes_.size) / np.where(pi2 > 0, pi2, 1e-9))[None, :]
+    ratio3 = {}
+    for g, codes in GROUPS.items():
+        # Restricted to CANDIDATES in the calibration half, matching
+        # m2_operating_point.py exactly. Using all true-group calibration rows
+        # instead is arguably more principled -- that is the population the
+        # expert's sigmoids saw -- but it is a different denominator, and
+        # ALPHA3 was selected against this one. A tuned constant applied to a
+        # differently-defined ratio is not the constant that was tuned.
+        own = np.intersect1d(c_va_cal, np.flatnonzero(np.isin(y, list(codes))))
+        pi = np.array([(y[own] == c).mean() for c in e_classes[g]])
+        ratio3[g] = ((1.0 / len(codes)) / np.where(pi > 0, pi, 1e-9))[None, :]
+    log(f"  operating point alpha2={ALPHA2} alpha3={ALPHA3}"
+        + ("  (plain argmax)" if ALPHA2 == 0 and ALPHA3 == 0 else ""))
+    manifest["alpha2"], manifest["alpha3"] = ALPHA2, ALPHA3
+
     hard = np.zeros(y.size, dtype=np.int32)
-    g_hat = m2.classes_[p2.argmax(1)]
+    g_hat = m2.classes_[reweight(p2, ratio2, ALPHA2).argmax(1)]
     for g in GROUPS:
         sel = g_hat == g
         if sel.any():
-            hard[c_te[sel]] = e_classes[g][p3[g][sel].argmax(1)]
+            hard[c_te[sel]] = e_classes[g][
+                reweight(p3[g][sel], ratio3[g], ALPHA3).argmax(1)]
     # sink and non-economic stay 0
 
     # joint: P(crop) = P(econ) * P(group|econ) * P(crop|group), argmax over 13,
