@@ -381,6 +381,14 @@ if __name__ == "__main__":
         log(f"  out-of-fold vs in-sample stage-1 route agreement on fold 0: {agree:.3%}")
         manifest["crossfit_s1_parts"] = CROSSFIT_S1
         manifest["crossfit_s1_route_agreement"] = round(agree, 4)
+        # Persist the out-of-fold routes. The agreement scalar says how OFTEN the
+        # two routings differ; it does not say what that costs Stage 2. Answering
+        # that needs both candidate populations from the SAME run -- comparing
+        # against another run's sink share confounds it with whatever else that
+        # run changed, which is exactly the trap the M0 vs baseline comparison
+        # fell into on 2026-08-25.
+        np.save(f"{OUT}/stage1_route_oof_train.npy", route[tr])
+        np.save(f"{OUT}/stage1_train_idx.npy", tr)
     else:
         log("  WARNING: CROSSFIT_S1 disabled -- stage-2 training routes are IN-SAMPLE")
         manifest["crossfit_s1_parts"] = 0
@@ -391,6 +399,21 @@ if __name__ == "__main__":
     g_of[g_of == 0] = SINK                       # Q11-C: anything not one of the 13
     log(f"  candidates {cand.size:,}; sink share "
         f"{(g_of[cand] == SINK).mean():.3%}")
+
+    if CROSSFIT_S1 >= 2:
+        # The same fold-0 rows under BOTH routings, from the SAME Stage-1 model,
+        # so the difference is the cross-fitting and nothing else. This is what
+        # the agreement scalar cannot tell you: how much contamination the
+        # in-sample routes were hiding from Stage 2. Comparing sink shares across
+        # two runs instead would confound it with every other change between them.
+        oof_tr = tr[route[tr] == 1]
+        ins_tr = tr[s1_pred[tr] == 1]
+        s_oof = float((g_of[oof_tr] == SINK).mean())
+        s_ins = float((g_of[ins_tr] == SINK).mean())
+        log(f"  fold-0 stage-2 candidates: out-of-fold {oof_tr.size:,} (sink {s_oof:.3%})"
+            f" vs in-sample {ins_tr.size:,} (sink {s_ins:.3%})")
+        manifest["stage2_train_sink_share_oof"] = round(s_oof, 4)
+        manifest["stage2_train_sink_share_insample"] = round(s_ins, 4)
 
     c_tr = np.intersect1d(cand, tr, assume_unique=False)
     c_va = np.intersect1d(cand, va)

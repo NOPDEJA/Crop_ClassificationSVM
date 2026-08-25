@@ -235,6 +235,72 @@ and §3.2 adds a prediction pass over the validation candidates, taking the chai
 roughly 4.7 h to roughly 7 h. `CROSSFIT_S1=0` restores the old in-sample routes and the
 old runtime, and logs a warning — acceptable only for a smoke test, never for M0 or M5.
 
+#### M0 RESULT — run 2026-08-25 02:31–08:09, `runs/s2_2018_3date_parcel_m0/`
+
+Every M0 criterion passed. Actual cost 5 h 38 min, not the 7 h estimated: cross-fitting
+was dearer than expected (each part fits on ~2.85 M rows against the full fit's 2.88 M,
+because the per-superclass caps bind on two thirds of fold 0 almost as hard as on all of
+it, so cross-fitting roughly *doubles* Stage 1 rather than adding a third), and the
+prediction passes were correspondingly cheaper.
+
+**1. The §3.5 defect, measured properly.** Out-of-fold and in-sample Stage-1 routes agree
+on **94.27%** of fold 0. The agreement scalar alone does not say what that costs, so the
+run now also reports both candidate populations from the same model:
+
+| fold-0 routing | Stage-2 candidates | sink share |
+|---|---|---|
+| in-sample (what the baseline did) | 9,806,157 | 15.657% |
+| out-of-fold (repaired) | 9,944,240 | **17.030%** |
+
+The in-sample routes were hiding **10.3% of the contamination** Stage 2 exists to reject.
+Same rows, same Stage-1 model, only the routing differs — so nothing else varies. Note
+that comparing M0's sink share against the *baseline run's* would NOT have been valid,
+because M0 also changed the calibration set; that comparison was drafted and discarded.
+
+**2. Accuracy: the repairs cost nothing measurable.** Both runs scored the identical fold
+2 (5,500,269 rows, 5,824 parcels), so unlike §0's 0.2248-against-0.2245 this is a
+legitimate paired comparison. Paired parcel bootstrap, 400 replicates:
+
+| | macro F1 | 95% CI |
+|---|---|---|
+| baseline `s2_2018_3date_parcel` | 0.2248 | — |
+| M0 `s2_2018_3date_parcel_m0` | **0.2283** | [0.2119, 0.2404] |
+| paired delta | **+0.0032** | [+0.0001, +0.0070] |
+
+**Do not report this as a gain.** The interval's lower bound is +0.0001, indistinguishable
+from zero, and a tail percentile from 400 replicates is itself noisy. The supportable
+claim is that removing the leak from model selection did not cost accuracy — which is what
+one wants from a correctness fix, and is the *second* time this project has found that
+tightening the protocol is close to free.
+
+The wide CI is the more important number: **±0.014 around 0.2283 at the parcel level.**
+Every macro F1 this project has published without such an interval is less precise than
+its four decimal places imply, and M5's improvement must clear this band to mean anything.
+
+Per crop, no class regressed materially and none revived: Oil palm +0.0277 and Mango
++0.0190 are the largest moves, Durian −0.0113 the only notable loss, and the same **7 of
+13** crops sit above F1 0.01 in both runs. Joint routing improved (0.1949 → 0.2025) but
+remains clearly worse than hard routing, reproducing the report's §5 finding on a second
+independent run.
+
+**3. The rare-crop risk did not materialise.** Every one of the 13 crops appears in both
+halves of fold 1. Langsat, the binding case, got **4 calibration pixels and 9 tuning
+pixels** — above the 2-positive floor, so a real sigmoid was fitted and no fallback fired
+at full scale. Label-stratified halving is what made that hold; the smoke run, where
+stratification had too few parcels to work with, did drop Langsat and exercised the
+fallback path instead.
+
+**4. Amendment 4 independently confirmed.** All three Stage-3 fit sizes reproduced the v2
+run exactly — orchards 172,371, plantation 148,344, field 210,000 = 3 × `PER_LU_CAP`. So
+field's denominator is uniform and the other two are not, and reusing a v2 `ratio3_den`
+artifact would misdenominate two of the three experts. This is now verified on two runs,
+not inferred from one.
+
+*Not carried by this run:* M0 does not persist the out-of-fold routes, so the in-sample
+side of table 1 had to be recomputed afterwards from `stage1_pred.npy`. The script now
+saves `stage1_route_oof_train.npy` and logs both sink shares directly, so M5 will not need
+the reconstruction.
+
 ### M1 — Calibration audit *(hours, no training)*
 Reliability curves / Brier per stage on the calibration half, predicted vs observed
 prevalence per class. This decides M2's framing: the run was calibrated on
