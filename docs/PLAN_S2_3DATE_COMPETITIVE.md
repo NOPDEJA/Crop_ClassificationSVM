@@ -351,11 +351,16 @@ different mix. The "miscalibration" is the fold difference, not a modelling faul
    call it that.** Prior correction presumes `π_true` is a property of the world that the
    training sample distorted. Here `π_true` is a property of *which parcels you drew*.
    There is nothing to correct toward.
-2. **An exponent selected on the tuning half may not transfer to fold 2 at all.** The
-   tuning half's Oil-palm share is 4.8× the test fold's, and its Langsat share is a
-   fourteenth. Tuning a rare-class decision rule on that half is fitting the sample, not
-   the problem. M2 must therefore report its selected point *and* what that point scores
-   under the test fold's mix, and must treat any rare-crop gain as unproven.
+2. ~~**An exponent selected on the tuning half may not transfer to fold 2 at all.**~~
+   **Overstated — M2 tested this and it is largely wrong.** The reasoning was that the
+   tuning half's Oil-palm share is 4.8× the test fold's and its Langsat share a
+   fourteenth, so a rare-class rule tuned there fits the sample. M2 measured it across
+   two disjoint parcel samples and found the exponent surface **correlates at 0.9936**
+   between them, picking adjacent cells at a transfer cost of −0.0014. Prevalence
+   instability is real, but it does not destabilise the *choice of exponent*, because the
+   response surface is a broad plateau rather than a peak. The surviving caution is
+   narrower and still worth stating: per-crop claims for the rarest classes remain
+   unsupported, because the tuning half contains **9 Langsat pixels**.
 3. **It compounds the ±0.014 interval from M0.** Not only is a single macro F1 imprecise,
    the class mix it is computed over is itself one draw. Any per-crop claim for the seven
    rare crops rests on a prevalence that moves by 2–25× depending on which parcels landed
@@ -392,6 +397,54 @@ counts, and must fail loudly rather than fall back to an artifact from another r
 Select on the tuning half of fold 1; the hypothesis (not a promise) is that it
 revives some of the seven dead crops at a macro-F1 cost/gain to be measured. Keep
 hard routing (§5 of the report: joint scoring is worse).
+
+#### M2 RESULT — run 2026-08-25, `m2_operating_point.py`, no training
+
+Artifact: `runs/s2_2018_3date_parcel_m0/m2_sweep.csv`, 169 cells (α₂, α₃ ∈ 0.0…1.2).
+
+**A correction to M2 as specified.** The plan says to take the denominator from the
+training population's priors, as `sweep_prior_alpha.py` does. That is right for v2 —
+weighted, upsampled, calibrated by internal CV on the rebalanced sample, so its
+probabilities sat at a rebalanced prior. It is **wrong for M0**, which uses caps only and
+fits its sigmoids on natural-prior validation rows. M1 measured the consequence:
+prevalence ratios 0.86–1.29 at Stage 1 and 0.91–1.26 at Stage 2. The probabilities are
+*already* at natural priors, so dividing by the capped training prior would re-apply a
+correction calibration has already made, and would show a large effect that is an
+artifact of double-counting. The sweep therefore reweights from the calibration
+population's prior toward uniform, and α is an **operating point** — "how far toward
+balanced" — not a correction toward a truth.
+
+**Amendment 4 discharged.** Stage-3 denominators are re-derived from this run as
+`min(N_c in fold 0, PER_LU_CAP)` and the totals are asserted against the run log:
+orchards 172,371, plantation 148,344, field 210,000 — all three reproduce exactly. The
+script refuses to sweep on a mismatch rather than falling back to another run's artifact.
+
+**Result, selected on the tuning half only (fold 2 not read):**
+
+| | α₂ | α₃ | tune macro F1 | crops alive |
+|---|---|---|---|---|
+| baseline | 0.0 | 0.0 | 0.2067 | 7 |
+| **selected on tune** | **0.2** | **0.7** | **0.2179** | **10** |
+| best on cal (check) | 0.2 | 0.6 | 0.2177 | — |
+
+**+0.0112 macro F1 and three crops brought back from zero**, which is a better outcome
+than the plan's hypothesis allowed for — it framed the trade as a possible cost.
+
+Per crop on the tuning half: Mangosteen +0.0422, Durian +0.0384, Jackfruit +0.0275,
+Rambutan +0.0252, Cassava +0.0171, Rubber +0.0077. Paid for by Pineapple −0.0144 and Oil
+palm −0.0056. **Langsat stays at 0.0000 and cannot move: the tuning half holds 9 Langsat
+pixels.** Pushing α₃ to 1.0 and beyond collapses the metric (0.1804 at 1.0, 0.1474 at 1.2),
+so the useful range is bounded.
+
+**The selection is robust, which was not expected.** Ten of 169 cells sit within 0.002 of
+the optimum (α₂ 0.1–0.4, α₃ 0.4–0.7) — a plateau, not a peak — and the two disjoint parcel
+halves rank all 169 cells with correlation **0.9936**. This both reproduces the older
+sweep's "flat curve" finding on an honest split and retires the worry recorded in M1's
+consequence 2.
+
+**Predeclared for M5:** operating point **(α₂ = 0.2, α₃ = 0.7)**, hard routing, selected on
+the tuning half. Recorded here *before* fold 2 is read, which is the point of writing it
+down.
 
 ### M3 — Feature parity: MTCI + raw B11 per date *(+6 columns, 24 → 30)*
 The one index family both other studies have and this arm lacks (MTCI, red-edge) plus
