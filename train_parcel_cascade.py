@@ -58,6 +58,9 @@ Env:
                  2 are NOT raised, because their fit sets are 5-17x larger and the
                  Nystroem block is n_rows x n_components x 8 bytes -- Stage 1 at
                  1200 would need 27.7 GB.
+  MERGE_TREE=1   collapse orchards+plantation into one "tree crops" subclass, so
+                 Stage 2 becomes tree/field/sink and Stage 3 has a 10-class tree
+                 expert. See the block above GROUPS for the measured motivation.
   ALPHA2/ALPHA3  operating-point exponents applied at compose time (default 0,
                  which is plain argmax). M2 selected 0.2 / 0.7 on fold 1's tuning
                  half. Reweights each class from the calibration population's
@@ -107,17 +110,46 @@ CROSSFIT_S1 = int(os.environ.get("CROSSFIT_S1", "3"))   # parcel-grouped parts; 
 ECON = {2101, 2204, 2205, 2302, 2303, 2403, 2404, 2405, 2407, 2413, 2416, 2419, 2420}
 WATER = {4101, 4102, 4103, 4201, 4202, 4203}
 FOREST = {3100, 3101, 3200, 3201, 3300, 3301, 3401, 3501}
-GROUPS = {1: {2403, 2404, 2407, 2413, 2416, 2419, 2420},   # orchards
-          2: {2302, 2303, 2405},                            # plantation
-          3: {2101, 2204, 2205}}                            # field
+# MERGE_TREE=1 collapses orchards and plantation into one "tree crops" subclass.
+#
+# Measured motivation (diagnose_cascade_waterfall.py on M0, fold 2): Stage 2 is
+# where the cascade dies. It loses 27-75% of every crop except rubber, and the
+# routing table shows every orchard crop going predominantly to PLANTATION --
+# Rambutan 0.641, Jackfruit 0.653, Langsat 0.523, Longan 0.490, Durian 0.477 --
+# where the expert can only emit rubber, oil palm or coconut. That is why
+# Rambutan, Longan, Jackfruit and Langsat score exactly 0.0000 end to end while
+# the orchards expert scores them 0.07-0.26 in isolation: they never reach it.
+#
+# Merging the two makes that particular misroute harmless. Projected Stage-2
+# recall from the same routing shares: Rambutan 0.138 -> 0.693, Jackfruit
+# 0.205 -> 0.829, Durian 0.353 -> 0.786, Longan 0.318 -> 0.773, with rubber
+# unchanged at 0.875 -> 0.879.
+#
+# This does not delete the orchards/plantation discrimination, it relocates it
+# into a 10-class expert trained on CAPPED, near-balanced data, instead of a
+# 4-way router whose argmax is dominated by a 68.5% plantation prior. That is the
+# bet, and it is what the probe has to test.
+#
+# The subclass is routing-only and never reported (CONTEXT.md), so this changes
+# no published taxonomy, and the hierarchy stays three-stage as the plan requires.
+MERGE_TREE = os.environ.get("MERGE_TREE", "0") == "1"
+if MERGE_TREE:
+    GROUPS = {1: {2403, 2404, 2407, 2413, 2416, 2419, 2420,
+                  2302, 2303, 2405},                        # tree crops
+              3: {2101, 2204, 2205}}                        # field
+    GNAME = {1: "tree", 3: "field", 4: "sink"}
+else:
+    GROUPS = {1: {2403, 2404, 2407, 2413, 2416, 2419, 2420},   # orchards
+              2: {2302, 2303, 2405},                            # plantation
+              3: {2101, 2204, 2205}}                            # field
+    GNAME = {1: "orchards", 2: "plantation", 3: "field", 4: "sink"}
 SINK = 4
-GNAME = {1: "orchards", 2: "plantation", 3: "field", 4: "sink"}
 CROPS = sorted(ECON)
 
 os.makedirs(OUT, exist_ok=True)
 rng = np.random.default_rng(RANDOM_STATE)
 manifest = {"smoke": SMOKE, "params_stage1": P1, "params_stage23": P23,
-            "params_stage3": P3, "npz": NPZ,
+            "params_stage3": P3, "npz": NPZ, "merge_tree": MERGE_TREE,
             "pca": False, "class_weight": None, "upsampling": False,
             "started": time.strftime("%Y-%m-%d %H:%M:%S")}
 
