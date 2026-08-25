@@ -52,6 +52,16 @@ Env:
   ARM_OUT=<dir>  output directory (default ./runs/s2_2018_3date_parcel)
   CROSSFIT_S1=k  parcel-grouped parts for out-of-fold Stage-1 routes (default 3;
                  0 disables and restores the in-sample routes, with a warning)
+  NPZ_OVERRIDE   feature matrix to use instead of config.NPZ (M3's 30-column one)
+  P3_COMPONENTS  Nystroem capacity for the Stage-3 experts only (default 600).
+                 M4 found an interior optimum at 1200 for orchards; Stages 1 and
+                 2 are NOT raised, because their fit sets are 5-17x larger and the
+                 Nystroem block is n_rows x n_components x 8 bytes -- Stage 1 at
+                 1200 would need 27.7 GB.
+  ALPHA2/ALPHA3  operating-point exponents applied at compose time (default 0,
+                 which is plain argmax). M2 selected 0.2 / 0.7 on fold 1's tuning
+                 half. Reweights each class from the calibration population's
+                 prior toward uniform; it is a decision rule, not a refit.
 """
 import json
 import os
@@ -76,6 +86,7 @@ from config import (NPZ, RANDOM_STATE, SAMPLES_PER_LU,
 # Config
 # -----------------------
 SMOKE = os.environ.get("SMOKE", "0") == "1"
+NPZ = os.environ.get("NPZ_OVERRIDE") or NPZ
 OUT = os.environ.get("ARM_OUT", "./runs/s2_2018_3date_parcel" + ("_smoke" if SMOKE else ""))
 SPLIT_ASSIGN = "./splits/split_assign.npy"
 PARCEL_ID = "./splits/parcel_id_row.npy"
@@ -86,6 +97,9 @@ PARCEL_ID = "./splits/parcel_id_row.npy"
 # what removes the pixel-level inner CV entirely.
 P1 = dict(n_components=250, gamma=0.02, C=1.0)
 P23 = dict(n_components=600, gamma=None, C=10.0)
+P3 = dict(P23, n_components=int(os.environ.get("P3_COMPONENTS", 600)))
+ALPHA2 = float(os.environ.get("ALPHA2", 0.0))
+ALPHA3 = float(os.environ.get("ALPHA3", 0.0))
 
 CHUNK = int(os.environ.get("PRED_CHUNK_OVERRIDE", 400_000))
 CALIB_MAX = 300_000       # random (NOT per-class) subsample -> natural priors kept
@@ -103,6 +117,7 @@ CROPS = sorted(ECON)
 os.makedirs(OUT, exist_ok=True)
 rng = np.random.default_rng(RANDOM_STATE)
 manifest = {"smoke": SMOKE, "params_stage1": P1, "params_stage23": P23,
+            "params_stage3": P3, "npz": NPZ,
             "pca": False, "class_weight": None, "upsampling": False,
             "started": time.strftime("%Y-%m-%d %H:%M:%S")}
 
@@ -449,7 +464,7 @@ if __name__ == "__main__":
         assert g_tr.size and g_va.size
         assert len(set(y[g_tr].tolist())) == len(codes), f"{GNAME[g]} lost a class in train"
         fit3 = cap(g_tr, y[g_tr], PER_LU_CAP)        # cap only; NO upsampling
-        m3 = fit_calibrated(X, y, fit3, g_va_cal, P23, f"stage3-{GNAME[g]}")
+        m3 = fit_calibrated(X, y, fit3, g_va_cal, P3, f"stage3-{GNAME[g]}")
         joblib.dump(m3, f"{OUT}/stage3_{GNAME[g]}_model.joblib")
         experts[g], e_classes[g] = m3, m3.classes_
 
@@ -464,12 +479,39 @@ if __name__ == "__main__":
 
     # ---------------- compose on the TEST FOLD ONLY ----------------
     log("composing cascade on fold 2")
+
+    # Operating point (M2). Reweights each class from the CALIBRATION population's
+    # prior toward uniform: p' proportional to p * ((1/K) / pi_cal(c)) ** alpha.
+    # The denominator is the calibration prior, NOT the capped training prior --
+    # the sigmoids were fitted on natural-prior rows, so dividing by the training
+    # prior would re-apply a correction calibration has already made. alpha=0
+    # leaves the argmax untouched, so the default reproduces plain hard routing.
+    def reweight(P, ratio, alpha):
+        if alpha == 0.0:
+            return P
+        out = P * (ratio ** alpha)
+        tot = out.sum(1, keepdims=True)
+        tot[tot == 0] = 1.0
+        return out / tot
+
+    pi2 = np.array([(g_of[c_va_cal] == g).mean() for g in m2.classes_])
+    ratio2 = ((1.0 / m2.classes_.size) / np.where(pi2 > 0, pi2, 1e-9))[None, :]
+    ratio3 = {}
+    for g, codes in GROUPS.items():
+        own = np.intersect1d(va_cal, np.flatnonzero(np.isin(y, list(codes))))
+        pi = np.array([(y[own] == c).mean() for c in e_classes[g]])
+        ratio3[g] = ((1.0 / len(codes)) / np.where(pi > 0, pi, 1e-9))[None, :]
+    log(f"  operating point alpha2={ALPHA2} alpha3={ALPHA3}"
+        + ("  (plain argmax)" if ALPHA2 == 0 and ALPHA3 == 0 else ""))
+    manifest["alpha2"], manifest["alpha3"] = ALPHA2, ALPHA3
+
     hard = np.zeros(y.size, dtype=np.int32)
-    g_hat = m2.classes_[p2.argmax(1)]
+    g_hat = m2.classes_[reweight(p2, ratio2, ALPHA2).argmax(1)]
     for g in GROUPS:
         sel = g_hat == g
         if sel.any():
-            hard[c_te[sel]] = e_classes[g][p3[g][sel].argmax(1)]
+            hard[c_te[sel]] = e_classes[g][
+                reweight(p3[g][sel], ratio3[g], ALPHA3).argmax(1)]
     # sink and non-economic stay 0
 
     # joint: P(crop) = P(econ) * P(group|econ) * P(crop|group), argmax over 13,

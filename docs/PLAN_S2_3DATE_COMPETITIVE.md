@@ -559,6 +559,54 @@ above the current 600 per stage, parcel-grouped CV, `scoring='f1_macro'` as the
 surrogate, checked with grouped out-of-fold end-to-end predictions before selection.
 If the ceiling is selected again, report the bound rather than escalating.
 
+#### M4 RESULT — 2026-08-25, `m4_capacity_probe.py`, orchards expert, 24 columns
+
+Bounded exactly as the plan requires: one expert, two points above the current 600, no
+cascade. Capacity isolates cleanly here because `gamma=None` resolves to `1/n_features`,
+which depends on the column count and not on `n_components` — so unlike M3, nothing else
+moves.
+
+| crop | 600 | 1200 | 1800 | tune support |
+|---|---|---|---|---|
+| Durian | 0.8648 | 0.8671 | 0.8660 | 60,574 |
+| Rambutan | 0.2201 | **0.2628** | 0.2667 | 615 |
+| Mango | 0.4214 | 0.4353 | 0.4264 | 3,045 |
+| Longan | 0.0449 | 0.0473 | 0.0516 | 975 |
+| Jackfruit | 0.0727 | 0.0759 | 0.0812 | 2,513 |
+| Mangosteen | 0.1165 | 0.1161 | 0.1083 | 1,414 |
+| Langsat | 0.0000 | 0.0000 | 0.0000 | 9 |
+| **macro-7** | 0.2486 | **0.2578** | 0.2572 | |
+| minutes | 13.9 | 37.1 | 60.3 | |
+| Nystroem block | 0.83 GB | 1.65 GB | 2.48 GB | |
+
+**An interior optimum — the first this project has found.** 1800 is *worse* than 1200 by
+0.0006. The standing assumption from `REVIEW_BRIEF.md` — that every search pinning at its
+ceiling meant capacity was throttling everything — is true from 600 to 1200 and false
+beyond it. Capacity saturates; it is no longer the binding constraint.
+
+**Size stated honestly, for the third time in this plan.** The +0.0092 is dominated by
+Rambutan's +0.0427 on **615 pixels**. Durian, the only ample-support class in the group,
+moves +0.0023 — nothing. Longan and Jackfruit rise monotonically with capacity but from
+bases near zero. The direction is consistent across four of the six scoreable crops, so
+the effect is probably real; its magnitude is not well determined.
+
+**Capacity cannot be raised uniformly, and this is a hard constraint on M5.** The Nystroem
+block is `n_rows × n_components × 8` bytes, and Stage 1's fit set is 17× the orchards one:
+
+| stage | fit rows | 600 | 1200 | 1800 |
+|---|---|---|---|---|
+| Stage 1 | 2,882,151 | 13.8 GB | 27.7 GB | **41.5 GB** |
+| Stage 2 | 800,000 | 3.8 GB | 7.7 GB | 11.5 GB |
+| Stage 3 orchards | 172,371 | 0.83 GB | 1.65 GB | 2.48 GB |
+
+Stage 1 already runs at 250 components for this reason. So M4's finding is applicable
+**only to the Stage-3 experts** — which is where it was measured, and where the rare crops
+are. Stage 2 is left at 600: raising it is arithmetically feasible but was never tested,
+and the final run is the wrong place to change an untested thing. That is a stated
+limitation, not an oversight.
+
+**Predeclared for M5:** Stage 3 at `n_components=1200`; Stages 1 and 2 unchanged.
+
 ### M5 — Retrain + the single fold-2 evaluation
 Predeclare: features (M3), parameters (M4), calibration split (§3.1), operating
 point (M2). Train, score fold 2 once, paired parcel bootstrap vs baseline. Rescore
