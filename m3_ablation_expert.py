@@ -39,9 +39,16 @@ from config import RANDOM_STATE, PER_LU_CAP
 M3_NPZ = "./aligned_features/svm_s2_3date_m3_features_labels.npz"
 SPLIT_ASSIGN = "./splits/split_assign.npy"
 RUN = os.environ.get("RUN_DIR", "./runs/s2_2018_3date_parcel_m0")
-ORCHARDS = [2403, 2404, 2407, 2413, 2416, 2419, 2420]
+GROUPS = {"orchards": [2403, 2404, 2407, 2413, 2416, 2419, 2420],
+          "plantation": [2302, 2303, 2405],
+          "field": [2101, 2204, 2205]}
+GROUP = os.environ.get("GROUP", "orchards")
+ORCHARDS = GROUPS[GROUP]          # the group under test; name kept for brevity
+EXPECTED_FIT = {"orchards": 172_371, "plantation": 148_344, "field": 210_000}
 NM = {2403: "Durian", 2404: "Rambutan", 2407: "Mango", 2413: "Longan",
-      2416: "Jackfruit", 2419: "Mangosteen", 2420: "Langsat"}
+      2416: "Jackfruit", 2419: "Mangosteen", 2420: "Langsat",
+      2302: "Rubber", 2303: "OilPalm", 2405: "Coconut",
+      2101: "Rice", 2204: "Cassava", 2205: "Pineapple"}
 P23 = dict(n_components=600, gamma=None, C=10.0)
 CALIB_MAX = 300_000
 
@@ -72,7 +79,7 @@ def fit_and_score(X, y, fit_idx, tune_idx, tag):
 
 
 if __name__ == "__main__":
-    log("M3 ablation: orchards expert, 24 vs 30 columns")
+    log(f"M3 ablation: {GROUP} expert, 24 vs 30 columns")
     d = np.load(M3_NPZ, allow_pickle=True)
     X30 = d["X"]
     y = d["y"].astype(np.int32)
@@ -96,7 +103,7 @@ if __name__ == "__main__":
         parts.append(w if w.size <= PER_LU_CAP else rng.choice(w, PER_LU_CAP, replace=False))
     fit_idx = np.sort(np.concatenate(parts))
     log(f"fit {fit_idx.size:,} | cal {g_cal.size:,} | tune {g_tune.size:,}")
-    assert fit_idx.size == 172_371, f"fit set changed: {fit_idx.size}"
+    assert fit_idx.size == EXPECTED_FIT[GROUP], f"fit set changed: {fit_idx.size}"
 
     res = {}
     # scored on raw decision functions: no calibrator between the features

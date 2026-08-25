@@ -467,6 +467,56 @@ Dec−Nov differences of existing columns are linear combinations carrying no ne
 information; they survive only as a preregistered training-only ablation if time
 allows.
 
+#### M3 RESULT — 2026-08-25, `m3_build_features.py`, `m3_ablation_expert.py`
+
+**The matrix is built and is row-identical.** `aligned_features/svm_s2_3date_m3_features_labels.npz`,
+(24,323,769 × 30). `y` reproduces from the label raster exactly, so
+`splits/split_assign.npy`, the parcel IDs and every M0/M1/M2 index array remain valid
+against it. Rasters live in `./indices_m3`, deliberately **not** `./indices`, because
+`align_indices_labels.py` derives column order from `sorted(glob("./indices/*.tif"))` and
+six new files there would silently reorder every existing arm.
+
+MTCI values are physically sensible — median 2.40–2.64, p95 4.50–4.90, the textbook range
+for vegetated land. Coverage among labelled pixels is 94.59% (Oct), 99.71% (Nov), 99.05%
+(Dec); the October composite carries the cloud gaps and those cells are median-imputed.
+
+**The go/no-go probe says the new columns buy almost nothing.** Orchards expert alone,
+fitted on the same 172,371 rows, scored on the tuning half by raw decision function:
+
+| crop | 24 col | 30 col | delta | tune support |
+|---|---|---|---|---|
+| Durian | 0.8648 | 0.8712 | +0.0064 | 60,574 |
+| Rambutan | 0.2201 | 0.2379 | +0.0179 | 615 |
+| Mango | 0.4214 | 0.4528 | +0.0314 | 3,045 |
+| Longan | 0.0449 | 0.0066 | **−0.0383** | 975 |
+| Jackfruit | 0.0727 | 0.0733 | +0.0006 | 2,513 |
+| Mangosteen | 0.1165 | 0.1079 | −0.0087 | 1,414 |
+| Langsat | 0.0000 | 0.0123 | +0.0123 | **9** |
+| **macro-7** | **0.2486** | **0.2517** | **+0.0031** | |
+
+**Read this as a negative result.** The +0.0031 is carried by classes with 615–3,045
+pixels, where a few points is noise; Langsat's +0.0123 comes off **nine pixels** and means
+nothing; and Longan *loses* more than any crop gains except Mango. The most reliable line
+in the table is Durian, the only class with ample support, and it moves +0.0064.
+
+The probe script originally printed an automatic "PROCEED" whenever the mean improved.
+That verdict was too credulous for a +0.0031 mean against a −0.0383 single-class move, and
+has been replaced by a report of the mean move beside the largest single move and its
+support. An automatic PROCEED on this evidence is precisely the overclaiming this document
+exists to catch.
+
+*Caveat that limits the probe:* `P23` uses `gamma=None`, which sklearn reads as
+`1/n_features`, so 24 → 30 also moves gamma 0.0417 → 0.0333. Feature effect and kernel
+width are therefore confounded. That mirrors what M5 would do, so it is the right probe
+for the *decision*, but it means a win could not be attributed to MTCI. Separating them is
+M4's job.
+
+**Consequence for the plan:** feature parity may still be worth carrying for the joint
+paper — having MTCI at all is what makes the comparison like-for-like — but it should no
+longer be presented as a route to a better number. The remaining question is whether the
+other two experts behave differently, since B11 should matter most for the soil-influenced
+field crops and for the rubber/oil-palm confusion that dominates the error budget.
+
 ### M4 — Small, stage-specific capacity check *(bounded, after M3)*
 Any gamma=None setting means 1/n_features, so tuning before the feature change would
 be invalid — features first, then search. Not the 24-cell grid of the first draft:
