@@ -670,6 +670,56 @@ Only if the grouped out-of-fold error budget shows cross-group contamination is 
 dominant loss: add a per-expert rejection class trained from cross-fitted upstream
 misroutes. Stays within the three-stage SVM hierarchy; deferred by default.
 
+#### TREE MERGE RESULT — run 2026-08-25 18:17 – 08-26 00:12, `runs/s2_2018_3date_parcel_tree/`
+
+**The merge failed. The prediction it was proposed on is falsified, and it should not be
+adopted.** Scored on fold 1's tuning half (fold 2 never read — `SKIP_TEST=1`), against M0
+on the identical population:
+
+| operating point | M0 | tree merge | delta |
+|---|---|---|---|
+| α = (0.0, 0.0) | 0.2067 | **0.2004** | **−0.0063** |
+| α = (0.2, 0.7) | 0.2179 | **0.2158** | **−0.0021** |
+
+Worse at both. But *how* it fails is the useful part:
+
+| crop | old group | M0 | tree | delta | support |
+|---|---|---|---|---|---|
+| Rice | field | 0.3883 | 0.4524 | **+0.0641** | 45,411 |
+| Oil palm | plantation | 0.3277 | 0.3820 | **+0.0543** | 109,693 |
+| Cassava | field | 0.3231 | 0.3419 | +0.0188 | 67,406 |
+| Pineapple | field | 0.4259 | 0.4087 | −0.0172 | 49,945 |
+| Rubber | plantation | 0.8081 | 0.7861 | −0.0220 | 732,519 |
+| Mangosteen | orchard | 0.0437 | 0.0064 | −0.0373 | 1,414 |
+| **Durian** | orchard | 0.4294 | 0.3722 | **−0.0572** | 60,574 |
+
+Group means: **field +0.0219, plantation +0.0104, orchards −0.0178.** Every one of the
+seven orchard crops got worse or stayed at zero.
+
+**The merge helped exactly the groups it was not meant to help, and hurt the one it was
+meant to rescue.** Two mechanisms, both now visible:
+
+1. *It did fix the routing.* Stage 2 became a 3-way problem, and the classes that stop
+   competing with orchards gain: oil palm +0.0543, rice +0.0641. The oil-palm recovery is
+   precisely what the merge predicted, and it happened.
+2. *But rubber's dominance followed the rare crops onto their new branch.* Inside a 7-class
+   orchards expert, durian and mangosteen compete only with each other. Inside a 10-class
+   tree expert they compete with rubber (732,519 tuning pixels) and oil palm. That is a
+   worse neighbourhood, and it costs more than the routing gain returns.
+
+**The correction this forces.** The proposal argued the problem was *which branch* the rare
+crops sit on. It is not. **Rubber's dominance follows them wherever they are put.** Moving
+them onto rubber's branch made it worse; the diagnosis in §5.6 of the report (Stage 2 loses
+27–75% of every crop except rubber) stands, but this particular fix for it does not.
+
+**What survives.** The 3-way Stage 2 is genuinely better *as a router* — that is what the
+field and plantation gains measure. A variant worth considering is keeping the merged Stage
+2 while restoring a two-level Stage 3 (tree → {orchard-like, plantation-like} → crop), but
+that is re-adding the stage the merge removed and needs its own justification rather than
+being slipped in.
+
+`MERGE_TREE` stays in the code, defaulting off, so the result is reproducible.
+
 ## 5. Dropped or deferred
 
 - **R4 (2020 rare-crop supplementation) is out of the execution plan.** Adding only
