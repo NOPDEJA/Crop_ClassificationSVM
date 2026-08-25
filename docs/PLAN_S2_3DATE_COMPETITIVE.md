@@ -494,10 +494,12 @@ fitted on the same 172,371 rows, scored on the tuning half by raw decision funct
 | Langsat | 0.0000 | 0.0123 | +0.0123 | **9** |
 | **macro-7** | **0.2486** | **0.2517** | **+0.0031** | |
 
-**Read this as a negative result.** The +0.0031 is carried by classes with 615–3,045
-pixels, where a few points is noise; Langsat's +0.0123 comes off **nine pixels** and means
-nothing; and Longan *loses* more than any crop gains except Mango. The most reliable line
-in the table is Durian, the only class with ample support, and it moves +0.0064.
+**On its own this reads as a negative result.** The +0.0031 is carried by classes with
+615–3,045 pixels, where a few points is noise; Langsat's +0.0123 comes off **nine pixels**
+and means nothing; and Longan *loses* more than any crop gains except Mango. The most
+reliable line in the table is Durian, the only class with ample support, and it moves
++0.0064. **But orchards alone was the wrong basis for a verdict** — see the other two
+experts below, which change the conclusion.
 
 The probe script originally printed an automatic "PROCEED" whenever the mean improved.
 That verdict was too credulous for a +0.0031 mean against a −0.0383 single-class move, and
@@ -511,11 +513,43 @@ width are therefore confounded. That mirrors what M5 would do, so it is the righ
 for the *decision*, but it means a win could not be attributed to MTCI. Separating them is
 M4's job.
 
-**Consequence for the plan:** feature parity may still be worth carrying for the joint
-paper — having MTCI at all is what makes the comparison like-for-like — but it should no
-longer be presented as a route to a better number. The remaining question is whether the
-other two experts behave differently, since B11 should matter most for the soil-influenced
-field crops and for the rubber/oil-palm confusion that dominates the error budget.
+**All three experts, which is what the verdict must rest on:**
+
+| expert | 24 col | 30 col | delta | reliability |
+|---|---|---|---|---|
+| orchards | 0.2486 | 0.2517 | +0.0031 | poor — 5 of 7 classes under 3,045 px, signs mixed |
+| field | 0.7400 | 0.7412 | +0.0011 | good — all three 45k–67k px; signs mixed |
+| plantation | 0.4545 | 0.4591 | **+0.0046** | **best — 695 to 732,519 px, all three positive** |
+
+Field is the sharpest test and returns essentially zero (+0.0011 with Pineapple −0.0052
+against Rice +0.0051). Plantation is the only expert where every class moves the same way,
+and it carries the largest supports in the study: Rubber +0.0038 on 732,519 px, Oil palm
++0.0088 on 109,693 px.
+
+**The gamma confound is resolved, not merely flagged.** `gamma=None` means `1/n_features`,
+so 24 → 30 also moved gamma 0.041667 → 0.033333. Refitting plantation at 30 columns with
+gamma **pinned** to the 24-column value separates them:
+
+| configuration | macro |
+|---|---|
+| 24 col, gamma = 1/24 | 0.4545 |
+| 30 col, gamma = 1/24 *(pinned)* | **0.4581** |
+| 30 col, gamma = 1/30 *(as run)* | 0.4591 |
+
+So of the +0.0046, **+0.0036 is the features and +0.0010 the gamma side-effect**. MTCI and
+B11 do carry signal. (The as-run configuration reproduced to four decimals and to identical
+per-class values on a second fit, which also confirms the pipeline is deterministic under
+the fixed seed.)
+
+**Verdict: proceed to M5 at 30 columns**, on three grounds — the effect is small but
+consistently positive across all three experts, it is mostly attributable to the features
+rather than to gamma, and feature parity is what makes the joint comparison like-for-like.
+
+**But state the size honestly.** Per-expert gains of +0.001 to +0.005 macro will not move
+the end-to-end headline meaningfully, and they are an order of magnitude smaller than M0's
+±0.014 parcel-level confidence interval. M3 was hoped to rescue the rare species; it did
+the opposite, helping most where support was already largest. The seven near-zero crops
+remain near zero, and nothing in M3 addresses them.
 
 ### M4 — Small, stage-specific capacity check *(bounded, after M3)*
 Any gamma=None setting means 1/n_features, so tuning before the feature change would
