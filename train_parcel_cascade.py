@@ -498,7 +498,13 @@ if __name__ == "__main__":
     ratio2 = ((1.0 / m2.classes_.size) / np.where(pi2 > 0, pi2, 1e-9))[None, :]
     ratio3 = {}
     for g, codes in GROUPS.items():
-        own = np.intersect1d(va_cal, np.flatnonzero(np.isin(y, list(codes))))
+        # Restricted to CANDIDATES in the calibration half, matching
+        # m2_operating_point.py exactly. Using all true-group calibration rows
+        # instead is arguably more principled -- that is the population the
+        # expert's sigmoids saw -- but it is a different denominator, and
+        # ALPHA3 was selected against this one. A tuned constant applied to a
+        # differently-defined ratio is not the constant that was tuned.
+        own = np.intersect1d(c_va_cal, np.flatnonzero(np.isin(y, list(codes))))
         pi = np.array([(y[own] == c).mean() for c in e_classes[g]])
         ratio3[g] = ((1.0 / len(codes)) / np.where(pi > 0, pi, 1e-9))[None, :]
     log(f"  operating point alpha2={ALPHA2} alpha3={ALPHA3}"
