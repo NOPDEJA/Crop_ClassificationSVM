@@ -1,0 +1,72 @@
+{
+  "smoke": false,
+  "params_stage1": {
+    "n_components": 250,
+    "gamma": 0.02,
+    "C": 1.0
+  },
+  "params_stage23": {
+    "n_components": 600,
+    "gamma": null,
+    "C": 10.0
+  },
+  "params_stage3": {
+    "n_components": 1200,
+    "gamma": null,
+    "C": 10.0
+  },
+  "npz": "./aligned_features/svm_s2_3date_m3_features_labels.npz",
+  "merge_tree": false,
+  "pca": false,
+  "class_weight": "sqrt",
+  "upsampling": false,
+  "started": "2026-08-26 02:29:29",
+  "folds": {
+    "train": 14842294,
+    "val": 3981206,
+    "test": 5500269,
+    "val_calibrate": 2195222,
+    "val_tune": 1785984
+  },
+  "n_features": 30,
+  "stage1_train": {
+    "1": 1000000,
+    "2": 482151,
+    "3": 800000,
+    "4": 600000
+  },
+  "crossfit_s1_parts": 3,
+  "crossfit_s1_route_agreement": 0.9446,
+  "stage2_train_sink_share_oof": 0.1691,
+  "stage2_train_sink_share_insample": 0.1555,
+  "stage2_sink_train": 1677100,
+  "class_weights": {
+    "stage2": {
+      "1": 1.0,
+      "2": 1.0,
+      "3": 1.0,
+      "4": 1.0
+    },
+    "stage3-orchards": {
+      "2403": 1.0,
+      "2404": 4.309,
+      "2407": 1.273,
+      "2413": 2.1985,
+      "2416": 1.6099,
+      "2419": 2.3883,
+      "2420": 6.5352
+    },
+    "stage3-plantation": {
+      "2302": 1.0,
+      "2303": 1.0,
+      "2405": 2.8964
+    },
+    "stage3-field": {
+      "2101": 1.0,
+      "2204": 1.0,
+      "2205": 1.0
+    }
+  },
+  "skip_test": true,
+  "finished": "2026-08-26 05:48:03"
+}

@@ -42,3 +42,25 @@ Every one of those settings except `CLASS_WEIGHT=sqrt` is M5's. `SKIP_TEST=1` is
 the single-read discipline is enforced mechanically: the run cannot read fold 2 even
 if someone wants it to. Reading fold 2 later, if the gate opens, is a separate scored
 pass over the saved models.
+
+---
+
+## Outcome, recorded 2026-08-26 05:5x
+
+The gate is **CLOSED**. `sweep_operating_point.py` selected (0.3, 0.6) on the
+calibration half, the same cell it selected for M5, and that cell scores
+**0.2272** on the tuning half against M5's **0.2294**. The weighted run does not
+beat M5, so under the predeclaration above **fold 2 is not read for this run** and
+it is reported as a tune-half negative result. `score_fold2.py` must not be run
+against this directory.
+
+| | M5 | weighted | delta |
+|---|---|---|---|
+| cell selected on cal | (0.3, 0.6) | (0.3, 0.6) | same |
+| cal macro F1 | 0.2720 | 0.2626 | -0.0094 |
+| **tune macro F1** | **0.2294** | **0.2272** | **-0.0022** |
+| crops >= 0.01 on tune | 10 | 11 | +1 |
+| tune at the fixed (0.2, 0.7) | 0.2283 | 0.2260 | -0.0023 |
+| tune at plain argmax | 0.2140 | 0.2114 | -0.0026 |
+
+The extra living class is Longan, 0.0029 -> 0.0130.
