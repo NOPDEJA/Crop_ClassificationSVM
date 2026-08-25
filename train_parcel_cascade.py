@@ -58,6 +58,11 @@ Env:
                  2 are NOT raised, because their fit sets are 5-17x larger and the
                  Nystroem block is n_rows x n_components x 8 bytes -- Stage 1 at
                  1200 would need 27.7 GB.
+  SKIP_TEST=1    do not predict or score fold 2 at all. Fold 2 gets ONE read, on a
+                 predeclared configuration; anything exploratory after that must be
+                 judged on fold 1's tuning half instead, from the *_prob_val.npy
+                 arrays. Also removes roughly 40% of the runtime, since the
+                 test-fold prediction passes are the bulk of it.
   MERGE_TREE=1   collapse orchards+plantation into one "tree crops" subclass, so
                  Stage 2 becomes tree/field/sink and Stage 3 has a 10-class tree
                  expert. See the block above GROUPS for the measured motivation.
@@ -107,6 +112,7 @@ ALPHA3 = float(os.environ.get("ALPHA3", 0.0))
 CHUNK = int(os.environ.get("PRED_CHUNK_OVERRIDE", 400_000))
 CALIB_MAX = 300_000       # random (NOT per-class) subsample -> natural priors kept
 CROSSFIT_S1 = int(os.environ.get("CROSSFIT_S1", "3"))   # parcel-grouped parts; 0 disables
+SKIP_TEST = os.environ.get("SKIP_TEST", "0") == "1"     # keep fold 2 unread
 ECON = {2101, 2204, 2205, 2302, 2303, 2403, 2404, 2405, 2407, 2413, 2416, 2419, 2420}
 WATER = {4101, 4102, 4103, 4201, 4202, 4203}
 FOREST = {3100, 3101, 3200, 3201, 3300, 3301, 3401, 3501}
@@ -476,10 +482,14 @@ if __name__ == "__main__":
     fit2 = cap(c_tr, g_of[c_tr], PER_GROUP_CAP)
     m2 = fit_calibrated(X, g_of, fit2, c_va_cal, P23, "stage2")
     joblib.dump(m2, f"{OUT}/stage2_model.joblib")
-    log("  predicting stage 2 on test candidates")
-    p2 = chunked_proba(m2, X, c_te)
-    np.save(f"{OUT}/stage2_prob_test.npy", p2)
-    np.save(f"{OUT}/stage2_test_idx.npy", c_te)
+    if SKIP_TEST:
+        p2 = None
+        log("  SKIP_TEST: fold 2 left unread")
+    else:
+        log("  predicting stage 2 on test candidates")
+        p2 = chunked_proba(m2, X, c_te)
+        np.save(f"{OUT}/stage2_prob_test.npy", p2)
+        np.save(f"{OUT}/stage2_test_idx.npy", c_te)
     log("  predicting stage 2 on validation candidates")
     np.save(f"{OUT}/stage2_prob_val.npy", chunked_proba(m2, X, c_va))
     np.save(f"{OUT}/stage2_val_idx.npy", c_va)
@@ -503,13 +513,25 @@ if __name__ == "__main__":
     # every expert scores every test candidate, which is what the joint rule needs
     p3 = {}
     for g in GROUPS:
-        log(f"  predicting {GNAME[g]} on all test candidates")
-        p3[g] = chunked_proba(experts[g], X, c_te)
-        np.save(f"{OUT}/stage3_{GNAME[g]}_prob_test.npy", p3[g])
+        if not SKIP_TEST:
+            log(f"  predicting {GNAME[g]} on all test candidates")
+            p3[g] = chunked_proba(experts[g], X, c_te)
+            np.save(f"{OUT}/stage3_{GNAME[g]}_prob_test.npy", p3[g])
         log(f"  predicting {GNAME[g]} on all validation candidates")
         np.save(f"{OUT}/stage3_{GNAME[g]}_prob_val.npy", chunked_proba(experts[g], X, c_va))
 
     # ---------------- compose on the TEST FOLD ONLY ----------------
+    if SKIP_TEST:
+        manifest["skip_test"] = True
+        manifest["finished"] = time.strftime("%Y-%m-%d %H:%M:%S")
+        with open(f"{OUT}/manifest.json", "w") as f:
+            json.dump(manifest, f, indent=2)
+        log("SKIP_TEST: fold 2 never predicted or scored. Judge this run on fold 1's"
+            " tuning half from the *_prob_val.npy arrays.")
+        log("wrote", f"{OUT}/manifest.json")
+        log("DONE")
+        raise SystemExit(0)
+
     log("composing cascade on fold 2")
 
     # Operating point (M2). Reweights each class from the CALIBRATION population's
