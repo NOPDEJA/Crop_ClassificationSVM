@@ -1,7 +1,7 @@
 # Draft report — hierarchical SVM crop classification, Rayong (47PQQ)
 
-**Status: rough draft, 2026-08-25.** Numbers are measured unless marked otherwise.
-One result is still running (M5, §7) and is marked *pending*. Terms follow `CONTEXT.md`.
+**Status: rough draft, 2026-08-25.** All numbers are measured. Terms follow `CONTEXT.md`.
+One experiment (the tree merge, §6) is running and is marked as such.
 
 ---
 
@@ -333,20 +333,40 @@ Two-to-fivefold recovery for the orchard species at no cost to rubber.
 **Stated as the bet it is:** this does not eliminate the orchards/plantation
 discrimination, it relocates it into a 10-class expert trained on capped, near-balanced
 data, instead of a router whose argmax is dominated by a 68.5% plantation prior. It is
-untested as of this draft and will be judged on the validation tuning half — *not* on the
-test fold, which has had its one read.
+being tested now, judged on the validation tuning half — *not* on the test fold, which has
+had its one read.
+
+**A prediction the M5 result makes falsifiable.** M5 revived three crops but paid 0.11 of
+oil palm to do it, because α₂ had to move mass across the orchards/plantation boundary.
+Under the merge those crops sit on the *same* branch, so no such trade is required. If the
+merge is right, it should deliver the rare-crop recovery **without** the oil-palm loss. If
+oil palm still collapses, the merge has not addressed the mechanism and should be dropped.
 
 ---
 
 ## 7. Where it stands
 
-| | macro F1 | notes |
-|---|---|---|
-| published pixel-split figure | 0.2245 | measured on ground the model had partly seen |
-| parcel-disjoint baseline | 0.2248 | honest protocol, first clean number |
-| + protocol repairs (M0) | **0.2283** | 95% CI [0.2119, 0.2404] |
-| + features, capacity, operating point (M5) | *pending* | predeclared before the test fold was read |
-| + tree merge | *not yet run* | judged on validation only |
+| | macro F1 | crops ≥ 0.01 | notes |
+|---|---|---|---|
+| published pixel-split figure | 0.2245 | 7 | measured on ground the model had partly seen |
+| parcel-disjoint baseline | 0.2248 | 7 | honest protocol, first clean number |
+| + protocol repairs (M0) | 0.2283 | 7 | 95% CI [0.2119, 0.2404] |
+| + features, capacity, operating point (M5) | **0.2344** | **10** | delta vs M0 +0.0064, CI [−0.0041, +0.0167] |
+| + tree merge | *running* | | judged on validation only; fold 2 has had its one read |
+
+**Read that table honestly.** From 0.2248 to 0.2344 is +0.0096 across every improvement
+this project has made, and the parcel bootstrap on the last step spans zero. The headline
+has not meaningfully moved.
+
+**What did move is the per-class picture.** Crops scoring above F1 0.01 went from 7 to 10.
+Jackfruit rose from 0.0008 to 0.0810, Mango from 0.0356 to 0.0659, and Rambutan, Coconut
+and Longan came off exactly zero. That was funded almost entirely by **oil palm falling
+0.5262 → 0.4158**, a loss of 0.11 on 89,353 pixels.
+
+That trade is the diagnosis of §5.6 appearing in the results. The operating point shifts
+probability from plantation toward orchards; orchard species revive and oil palm pays,
+because Stage 2 puts them on different branches and the decision rule can only rob one to
+feed the other. It is a symptom of the routing problem, not a fix for it.
 
 **The comparison the joint paper has to survive** is with a random-forest study reporting
 0.714 — which is a *support-weighted* F1, not macro. Recomputed from its own per-class
