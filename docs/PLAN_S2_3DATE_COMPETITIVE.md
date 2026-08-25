@@ -612,6 +612,59 @@ Predeclare: features (M3), parameters (M4), calibration split (§3.1), operating
 point (M2). Train, score fold 2 once, paired parcel bootstrap vs baseline. Rescore
 the same predictions under the shared capped protocol for the joint table.
 
+#### M5 RESULT — run 2026-08-25 12:24–18:16 (5h52m), `runs/s2_2018_3date_parcel_m5/`
+
+The single predeclared fold-2 read. All four elements were fixed before it: 30 columns
+(M3), Stage-3 capacity 1200 (M4), calibration on fold 1's calibration half (§3.1),
+operating point (α₂ 0.2, α₃ 0.7) hard routing (M2). `run.err` empty.
+
+**Headline: macro F1 0.2344, weighted 0.7974** against M0's 0.2283 / 0.8050.
+
+Paired parcel bootstrap on the identical fold 2 (5,500,269 rows, 5,824 parcels), 400
+replicates: **delta +0.0064, 95% CI [−0.0041, +0.0167]**, P(M5 > M0) = 0.863.
+**The interval includes zero.** Three months of levers — features, capacity and decision
+rule together — do not produce a detectable change in the headline.
+
+Per crop is far more interesting than the headline:
+
+| crop | baseline | M0 | M5 | M5 − M0 | support |
+|---|---|---|---|---|---|
+| Jackfruit | 0.0000 | 0.0008 | **0.0810** | **+0.0802** | 10,054 |
+| Mango | 0.0166 | 0.0356 | 0.0659 | +0.0303 | 13,346 |
+| Cassava | 0.3231 | 0.3239 | 0.3451 | +0.0212 | 178,464 |
+| Rice | 0.3976 | 0.3977 | 0.4181 | +0.0204 | 49,838 |
+| Rambutan | 0.0000 | 0.0000 | 0.0184 | +0.0184 | 1,625 |
+| Durian | 0.3795 | 0.3682 | 0.3827 | +0.0145 | 73,052 |
+| Mangosteen | 0.0005 | 0.0052 | 0.0132 | +0.0080 | 4,122 |
+| Coconut | 0.0000 | 0.0000 | 0.0085 | +0.0085 | 2,947 |
+| Longan | 0.0000 | 0.0000 | 0.0054 | +0.0054 | 1,709 |
+| Rubber | 0.8767 | 0.8799 | 0.8721 | −0.0078 | 3,235,887 |
+| Pineapple | 0.4301 | 0.4305 | 0.4208 | −0.0097 | 139,979 |
+| **Oil palm** | 0.4985 | 0.5262 | **0.4158** | **−0.1104** | 89,353 |
+| Langsat | 0.0000 | 0.0000 | 0.0000 | 0.0000 | 191 |
+| **crops ≥ 0.01** | **7** | **7** | **10** | | |
+
+**Three crops came off exactly zero and Jackfruit rose a hundredfold — paid for almost
+entirely by oil palm losing 0.11.** That single class funds most of the rest, which is why
+the macro barely moves.
+
+**This is the routing bias showing itself at the decision layer.** α₂ shifts probability
+mass from plantation toward orchards. Orchard species revive; oil palm, which lives in
+plantation, is what pays. Stage 2 forces a trade between them because they are different
+branches — so the operating point can only rob one to feed the other.
+
+**That observation is the strongest argument yet for the tree merge** (§6 below), and it
+was not anticipated when the merge was proposed. Under `MERGE_TREE` oil palm and the
+orchard species share a branch, so α₂ never has to choose between them; the discrimination
+moves inside a 10-class expert trained on capped, near-balanced data. The merge should
+therefore buy the rare-crop revival *without* the oil-palm bill. That is now a falsifiable
+prediction, and the run testing it is under way.
+
+**Protocol note.** Fold 2 has had its one predeclared read. The tree merge is a new
+hypothesis generated from M0's diagnostics, so it is judged on fold 1's tuning half via
+`score_val_tune.py` — never on fold 2. `SKIP_TEST=1` makes that structural rather than a
+matter of discipline: the run never predicts fold 2 at all.
+
 ### M6 — Conditional pilot: contamination-aware Stage-3 experts
 Only if the grouped out-of-fold error budget shows cross-group contamination is a
 dominant loss: add a per-expert rejection class trained from cross-fitted upstream
