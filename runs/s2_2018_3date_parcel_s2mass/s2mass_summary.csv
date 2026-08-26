@@ -2,6 +2,11 @@
 M5,0.3,0.6,0.272,0.2294,10,0.214
 control,0.3,0.6,0.272,0.2294,10,0.214
 treatment,0.3,0.5,0.2736,0.2375,10,0.2169
-noise floor |control - M5|,,,,0.0,,
-effect treatment - control,,,,0.0081,,
-claimed (|effect| > noise floor),,,,True,,
+exact tune macro F1 M5,,,,0.2293728967,,
+exact tune macro F1 control,,,,0.2293713596,,
+exact tune macro F1 treatment,,,,0.2375031026,,
+"noise floor, exact |control - M5|",,,,0.0000015371,,
+"noise floor, literal |control - 0.2294|",,,,0.0000286404,,
+effect treatment - control,,,,0.0081317430,,
+claimed (effect > both floors),,,,True,,
+control model byte-identical to M5 (sha256),,,,True,hardlinks=1,1d8662063489cdc5

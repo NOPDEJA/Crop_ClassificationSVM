@@ -75,3 +75,30 @@ runs/s2_2018_3date_parcel_s2mass/{control,treatment}/opsweep*.csv
 
 Scripts: `stage2_diagnostics.py`, `paired_bootstrap_m0.py`, `probe_replay_overlap.py`,
 `probe_dry_season_grouped.py`, `s2mass_stage2.py`, `s2mass_score.py`.
+
+---
+
+## Round 2 outcome, 2026-08-26
+
+All six findings applied. Two changed a conclusion rather than wording.
+
+| finding | severity | disposition |
+|---|---|---|
+| F3 stale "I report a bracket" at §6 | High | fixed, now "two proxy sensitivity scenarios" |
+| noise floor not saved at precision | Medium | `s2mass_score.py` recomputes exact scores and saves 10 decimals, plus both readings of the predeclared floor |
+| §1 misnumbers its own result | Low | "fifth item" corrected to "fourth item" |
+| probe softened its predeclared collapse branch | High | §5, §7.7 and §8.2 now take the collapse reading, and the probe-versus-cascade routing-loss comparison is deleted as unsupported |
+| pool identity not proved by the six checks | Medium | §4 states the six checks are indirect and that M5 never saved the indices, then gives the byte-identical model as the direct proof |
+| noise language broader than measured | Medium | narrowed to scoring-path reproducibility, and limitation 6 now says full-cascade variation is unmeasured |
+
+**The seventh check turned out to matter more than a check.** The control's Stage-2 model is
+byte-identical to M5's (SHA-256 `1d8662063489cdc5...`, separate files, hardlink count 1), so
+the Stage-2 fit is deterministic given the pool. That is the direct pool proof the six
+checkpoints could not give. It also means the control never measured retraining variation at
+all. Re-predicting with M5's own model in a fresh process reproduces the same 0.0007 spread
+that the control showed, while two predictions inside one process are bit-identical, so the
+0.0000015 is threaded floating point at predict time. The report now says exactly that, and
+limitation 6 returns full-cascade run-to-run variation to the unmeasured column.
+
+Follow-ups accepted into §8: future baseline runs must save Stage-2 fit and calibration
+indices or their hashes, and the pool-draw sensitivity of +0.0081 is unmeasured by design.
