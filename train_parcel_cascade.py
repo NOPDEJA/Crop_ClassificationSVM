@@ -75,6 +75,7 @@ Env:
                  half. Reweights each class from the calibration population's
                  prior toward uniform; it is a decision rule, not a refit.
 """
+import hashlib
 import json
 import os
 import time
@@ -196,6 +197,17 @@ manifest = {"smoke": SMOKE, "params_stage1": P1, "params_stage23": P23,
 
 def log(*a):
     print(f"[{time.strftime('%H:%M:%S')}]", *a, flush=True)
+
+
+def save_hashed(key, arr, path):
+    """Persist a fit/cal row-index array and record its SHA-256 in the manifest.
+
+    E1, docs/PLAN_2026-08-26_POSTREVIEW_EXECUTION.md: without these, Stage-2/3's
+    actual sampled fit/cal rows were never saved, only reconstructable as an
+    expectation from OOF routes -- this is what closes that gap.
+    """
+    np.save(path, arr)
+    manifest.setdefault("fit_cal_hashes", {})[key] = hashlib.sha256(arr.tobytes()).hexdigest()
 
 
 def base_pipe(p):
@@ -543,6 +555,8 @@ if __name__ == "__main__":
     manifest["stage2_sink_train"] = int((g_of[c_tr] == SINK).sum())
 
     fit2 = cap(c_tr, g_of[c_tr], PER_GROUP_CAP)
+    save_hashed("stage2_fit_idx", fit2, f"{OUT}/stage2_fit_idx.npy")
+    save_hashed("stage2_cal_idx", c_va_cal, f"{OUT}/stage2_cal_idx.npy")
     m2 = fit_calibrated(X, g_of, fit2, c_va_cal, P23, "stage2", weighted=True)
     joblib.dump(m2, f"{OUT}/stage2_model.joblib")
     if SKIP_TEST:
@@ -569,6 +583,8 @@ if __name__ == "__main__":
         assert g_tr.size and g_va.size
         assert len(set(y[g_tr].tolist())) == len(codes), f"{GNAME[g]} lost a class in train"
         fit3 = cap(g_tr, y[g_tr], PER_LU_CAP)        # cap only; NO upsampling
+        save_hashed(f"stage3_{GNAME[g]}_fit_idx", fit3, f"{OUT}/stage3_{GNAME[g]}_fit_idx.npy")
+        save_hashed(f"stage3_{GNAME[g]}_cal_idx", g_va_cal, f"{OUT}/stage3_{GNAME[g]}_cal_idx.npy")
         m3 = fit_calibrated(X, y, fit3, g_va_cal, P3, f"stage3-{GNAME[g]}",
                             weighted=True)
         joblib.dump(m3, f"{OUT}/stage3_{GNAME[g]}_model.joblib")
