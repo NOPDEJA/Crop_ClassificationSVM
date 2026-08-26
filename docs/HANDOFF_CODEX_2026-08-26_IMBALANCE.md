@@ -41,8 +41,8 @@ full cascades. All of this is verified locally, not taken on trust.
 |---|---|
 | M5 test macro F1 **0.2344**, weighted 0.7974, 5,500,269 rows, strict convention | `runs/s2_2018_3date_parcel_m5/report_hard.csv`, `manifest.json` |
 | M5 tuning-half macro F1 **0.2294** at (0.3, 0.6) selected on the calibration half | `runs/s2_2018_3date_parcel_m5/opsweep_selection.json` |
-| Tempered class weights: tuning-half **0.2272**, gate closed, fold 2 unread | `runs/s2_2018_3date_parcel_weighted/{opsweep_selection.json,PREDECLARATION.md}` |
-| Selecting and reporting on the same half is optimistic by **+0.0426** | cal 0.2720 vs tune 0.2294, `opsweep.csv` |
+| Tempered class weights: tuning-half **0.2272**, gate closed, no weighted end-to-end fold-2 score computed | `runs/s2_2018_3date_parcel_weighted/{opsweep_selection.json,PREDECLARATION.md}` |
+| ~~Selecting and reporting on the same half is optimistic by +0.0426~~ **WRONG, see §0.** True selection optimism **+0.0008**; the two parcel halves differ by +0.0478 at plain argmax | `opsweep.csv` |
 | Tree-merge probe **0.2158** vs M5's **0.2283** at the same fixed cell | `runs/s2_2018_3date_parcel_tree/val_tune_score_a02_07.csv` |
 | MTCI ranks **last** in both permutation probes (0.023 / 0.039) | `runs/s2_2018_3date_parcel_m5/permutation_importance_by_index.csv` |
 
