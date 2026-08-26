@@ -10,6 +10,29 @@ from the artefacts. Assume at least one claim below is wrong and go looking for 
 
 ---
 
+## 0. RESOLVED, 2026-08-26 — Codex answered, and I verified every load-bearing number
+
+| claim | verdict | what replaced it |
+|---|---|---|
+| C1 caps are the class-weighting scheme | **too categorical** | caps balance the *label*; the *subtype inside* each group is untouched. See below. |
+| C2 rubber not over-represented in fitting | **FALSE, and the important one** | Stage 2's plantation pool is **96.82 % rubber, 0.08 % coconut**, so a uniform 200k draw yields ~193,645 rubber against ~159 coconut. Same defect in orchards: durian 66.7 %, Langsat 0.60 %. |
+| C3 effective n = parcel count | **directionally right, literally wrong** | Langsat has **10** training parcels, not 27, and one holds 1,310 of its 1,639 pixels. Parcel count is a proxy, not an identity. |
+| C4 duplication == sample_weight | **false for this pipeline** | weights reach only `LinearSVC`; duplication also moves the imputer median, scaler moments and the Nystroem landmark draw. |
+| C5 SMOTE would densify parcels | **survives** | at k=5, 97.9 % of Langsat nearest-neighbour edges are within the same parcel. |
+
+Two premises in this file were also contaminated and are corrected in
+`docs/REPORT_2026-08-27.md` §5: the "+0.0426 optimism" was a parcel-half level difference,
+not selection bias (true optimism is +0.0008), and "fold 2 unread" should read "no weighted
+end-to-end fold-2 score was computed or used".
+
+**The decisive new number:** freeze every model and replace only the learned Stage-2 route
+with the true group, and tuning-half macro F1 goes **0.2294 → 0.3785, worth +0.149**. Soft
+probability-product routing does not fix it (0.2279), so the defect is the learned boundary.
+The next experiment is the paired Stage-2 subtype-mass probe, two Stage-2 fits rather than two
+full cascades. All of this is verified locally, not taken on trust.
+
+---
+
 ## 1. The state of the evidence
 
 ### What is measured and reproducible

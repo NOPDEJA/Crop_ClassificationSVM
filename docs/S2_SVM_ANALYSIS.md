@@ -1157,6 +1157,17 @@ scores under a uniform prior on a balanced test half; the tile carries a 3,199×
 imbalance, and at real priors precision on a rare class is bounded by that imbalance
 however good the decision boundary is. Lifting Rambutan from 0.001 to 0.6 is not on offer.
 
+> **CORRECTION, 2026-08-26.** The claim below is withdrawn. `probe_dry_season.py` splits by
+> a random pixel permutation rather than by parcel, and replaying that split with parcel IDs
+> shows the rare crops share most of their test parcels with training: Langsat 87.5 %,
+> Rambutan 95.7 %, Longan 94.0 %, Coconut 93.7 %, against 54.5 % for rubber. The leak is worst
+> for exactly the species the claim is about. The probe therefore shows that rare-crop pixels
+> drawn from **already-seen parcels** are separable under a uniform prior, and says nothing
+> about an unseen parcel. The parcel-count argument two paragraphs up is also wrong on its
+> facts: Langsat has 10 feature-valid training parcels, not 27, and one of them holds 1,310 of
+> its 1,639 pixels. Rebuild this probe with parcel-grouped splits before quoting any of it.
+> See `docs/REPORT_2026-08-27.md` §5.
+
 The defensible claim is narrower and still decisive: **the ceiling on these species is
 not spectral.** What limits them is a chain of pipeline choices — the acquisition window,
 the PCA and kernel-capacity ceilings, and the uncorrected class prior — every one of
