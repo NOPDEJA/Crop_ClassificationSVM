@@ -1,0 +1,15 @@
+{
+  "m5": "./runs/s2_2018_3date_parcel_m5",
+  "npz": "./aligned_features/svm_s2_3date_m3_features_labels.npz",
+  "params_stage23": {
+    "n_components": 600,
+    "gamma": null,
+    "C": 10.0
+  },
+  "stage2_fit_rows": 800000,
+  "stage2_cal_rows": 300000,
+  "started": "2026-08-26 13:19:57",
+  "control_minutes": 32.0,
+  "treatment_minutes": 32.9,
+  "finished": "2026-08-26 14:24:53"
+}

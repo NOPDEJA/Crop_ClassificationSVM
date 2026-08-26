@@ -1,0 +1,20 @@
+{
+  "run": "./runs/s2_2018_3date_parcel_s2mass/treatment",
+  "grid": [
+    0.0,
+    1.2,
+    13
+  ],
+  "selected_on": "cal",
+  "alpha2": 0.3,
+  "alpha3": 0.5,
+  "cal_macro_f1": 0.2736,
+  "tune_macro_f1": 0.2375,
+  "tune_alive": 10,
+  "baseline_tune_macro_f1": 0.2169,
+  "fixed_cell": [
+    0.2,
+    0.7
+  ],
+  "fixed_cell_tune_macro_f1": 0.2329
+}

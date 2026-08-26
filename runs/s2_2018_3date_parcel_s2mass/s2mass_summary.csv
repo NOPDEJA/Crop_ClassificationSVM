@@ -1,0 +1,7 @@
+﻿arm,alpha2,alpha3,cal_macro_f1,tune_macro_f1,tune_alive_of_13,argmax_tune_macro_f1
+M5,0.3,0.6,0.272,0.2294,10,0.214
+control,0.3,0.6,0.272,0.2294,10,0.214
+treatment,0.3,0.5,0.2736,0.2375,10,0.2169
+noise floor |control - M5|,,,,0.0,,
+effect treatment - control,,,,0.0081,,
+claimed (|effect| > noise floor),,,,True,,

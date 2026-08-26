@@ -1,0 +1,15 @@
+﻿group,crop,lu_code,pool_rows,share_of_group,expected_rows_in_cap_draw
+orchards,Durian,2403,160991,0.667353,133471
+orchards,Rambutan,2404,2928,0.012137,2427
+orchards,Mango,2407,29074,0.12052,24104
+orchards,Longan,2413,12669,0.052517,10503
+orchards,Jackfruit,2416,25192,0.104428,20886
+orchards,Mangosteen,2419,8941,0.037063,7413
+orchards,Langsat,2420,1443,0.005982,1196
+plantation,Rubber,2302,6822897,0.968224,193645
+plantation,OilPalm,2303,218319,0.030981,6196
+plantation,Coconut,2405,5604,0.000795,159
+field,Rice,2101,137060,0.144264,28853
+field,Cassava,2204,429101,0.451655,90331
+field,Pineapple,2205,383902,0.404081,80816
+sink,(non-crop),0,1677101,1.0,200000
