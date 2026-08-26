@@ -1,0 +1,15 @@
+﻿group,crop,lu_code,rows,weight
+orchards,Durian,2403,133430,0.5841
+orchards,Rambutan,2404,2425,4.333
+orchards,Mango,2407,24173,1.3724
+orchards,Longan,2413,10457,2.0866
+orchards,Jackfruit,2416,20912,1.4755
+orchards,Mangosteen,2419,7430,2.4754
+orchards,Langsat,2420,1173,6.2301
+plantation,Rubber,2302,193611,0.8545
+plantation,OilPalm,2303,6218,4.768
+plantation,Coconut,2405,171,28.7519
+field,Rice,2101,28463,1.5718
+field,Cassava,2204,90462,0.8817
+field,Pineapple,2205,81075,0.9313
+sink,(non-crop),0,200000,1.0

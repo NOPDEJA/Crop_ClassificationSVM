@@ -1,0 +1,16 @@
+{
+  "npz": "./aligned_features/svm_s2_3date_m3_features_labels.npz",
+  "arm": "control",
+  "stage1_from": "./runs/s2_2018_3date_parcel_m5",
+  "stage3_from": "./runs/s2_2018_3date_parcel_m5",
+  "params_stage23": {
+    "n_components": 600,
+    "gamma": null,
+    "C": 10.0
+  },
+  "params_stage3": {
+    "n_components": 1200,
+    "gamma": null,
+    "C": 10.0
+  }
+}

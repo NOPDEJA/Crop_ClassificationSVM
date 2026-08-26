@@ -1,0 +1,17 @@
+{
+  "seed": 1001,
+  "m5": "./runs/s2_2018_3date_parcel_m5",
+  "s2mass": "./runs/s2_2018_3date_parcel_s2mass",
+  "npz": "./aligned_features/svm_s2_3date_m3_features_labels.npz",
+  "params_stage23": {
+    "n_components": 600,
+    "gamma": null,
+    "C": 10.0
+  },
+  "stage2_fit_rows": 800000,
+  "stage2_cal_rows": 300000,
+  "started": "2026-08-27 01:01:48",
+  "control_minutes": 46.9,
+  "treatment_minutes": 51.8,
+  "finished": "2026-08-27 02:40:30"
+}

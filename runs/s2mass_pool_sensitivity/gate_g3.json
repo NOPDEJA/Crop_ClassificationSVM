@@ -1,0 +1,14 @@
+{
+  "deltas_cal_selected": [
+    0.0072,
+    0.0087,
+    0.0074
+  ],
+  "mean_delta": 0.0078,
+  "range": [
+    0.0072,
+    0.0087
+  ],
+  "all_favour_treatment": true,
+  "gate_g3_pass": true
+}

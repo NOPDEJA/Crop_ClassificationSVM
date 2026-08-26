@@ -1,0 +1,20 @@
+{
+  "run": "./runs/s2mass_pool_sensitivity/draw_1001/treatment",
+  "grid": [
+    0.0,
+    1.2,
+    13
+  ],
+  "selected_on": "cal",
+  "alpha2": 0.4,
+  "alpha3": 0.6,
+  "cal_macro_f1": 0.2717,
+  "tune_macro_f1": 0.2379,
+  "tune_alive": 10,
+  "baseline_tune_macro_f1": 0.2161,
+  "fixed_cell": [
+    0.3,
+    0.6
+  ],
+  "fixed_cell_tune_macro_f1": 0.2373
+}

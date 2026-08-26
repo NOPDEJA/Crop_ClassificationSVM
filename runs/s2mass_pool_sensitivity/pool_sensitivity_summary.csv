@@ -1,0 +1,4 @@
+﻿seed,control_cal_selected_tune_f1,treatment_cal_selected_tune_f1,delta_cal_selected,control_fixed_cell_tune_f1,treatment_fixed_cell_tune_f1,delta_fixed_cell
+1001,0.2307,0.2379,0.0072,0.2307,0.2373,0.0066
+1002,0.2272,0.2359,0.0087,0.2279,0.235,0.0071
+1003,0.227,0.2344,0.0074,0.227,0.2336,0.0066
