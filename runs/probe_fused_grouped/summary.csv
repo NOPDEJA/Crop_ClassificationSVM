@@ -1,0 +1,3 @@
+﻿arm,n_features,split,macro_f1,accuracy,fit_seconds
+A_s2only,40,parcel-grouped,0.3945,0.4257,115.6
+B_fused,153,parcel-grouped,0.4401,0.48,86.0
