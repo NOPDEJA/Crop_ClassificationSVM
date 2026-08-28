@@ -68,6 +68,32 @@ def log(*a):
     print(f"[{time.strftime('%H:%M:%S')}]", *a, flush=True)
 
 
+class PlattCalibrated:
+    """Must be defined here (not just imported) so joblib.load() can resolve
+    the __main__.PlattCalibrated class the E4/M5 models were pickled under."""
+
+    def __init__(self, base):
+        self.base = base
+        self.classes_ = base.classes_
+
+    def _scores(self, X):
+        s = self.base.decision_function(X)
+        return s.reshape(-1, 1) if s.ndim == 1 else s
+
+    def fit(self, X, y):
+        raise NotImplementedError("E7 only loads and predicts with already-fit models")
+
+    def predict_proba(self, X):
+        S = self._scores(X)
+        import numpy as _np
+        P = _np.empty_like(S, dtype=_np.float64)
+        for k, sig in enumerate(self.cal_):
+            P[:, k] = 1.0 / (1.0 + _np.exp(-S[:, k])) if sig is None else sig.predict(S[:, k])
+        tot = P.sum(1, keepdims=True)
+        tot[tot == 0] = 1.0
+        return P / tot
+
+
 def chunked_proba(model, X, idx):
     out = np.zeros((idx.size, len(model.classes_)), dtype=np.float32)
     for s in range(0, idx.size, CHUNK):

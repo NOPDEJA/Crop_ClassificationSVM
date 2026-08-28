@@ -1,0 +1,24 @@
+{
+  "m5": "./runs/s2_2018_3date_parcel_m5",
+  "e4": "./runs/retune_stage2_orchards",
+  "npz": "./aligned_features/svm_s2_3date_m3_features_labels.npz",
+  "selected_operating_point": {
+    "alpha2": 0.4,
+    "alpha3": 0.5
+  },
+  "results": {
+    "hard": {
+      "rows": 5500269,
+      "macro_f1": 0.2429,
+      "weighted_f1": 0.7949
+    }
+  },
+  "m5_baseline_macro_f1": 0.2344,
+  "delta_vs_m5": 0.0085,
+  "gates_carried": {
+    "G3_subtype_mass_stage2_weights": "PASS (baked into E4's Stage-2 fit)",
+    "G4_stage2_orchards_retune": "PASS",
+    "G5_stage3_subtype_mass_plantation_orchards": "FAIL (not used)"
+  },
+  "finished": "2026-08-28 19:05:19"
+}
