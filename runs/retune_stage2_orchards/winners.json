@@ -1,0 +1,16 @@
+{
+  "stage2": {
+    "n_components": 1200,
+    "gamma": 0.01666667,
+    "C": 30.0,
+    "mean_test_score": 0.6871,
+    "std_test_score": 0.0075
+  },
+  "orchards": {
+    "n_components": 1200,
+    "gamma": 0.01666667,
+    "C": 30.0,
+    "mean_test_score": 0.2818,
+    "std_test_score": 0.0242
+  }
+}

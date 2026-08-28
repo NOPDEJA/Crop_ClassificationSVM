@@ -1,0 +1,59 @@
+{
+  "winner_stage2": {
+    "n_components": 1200,
+    "gamma": 0.01666667,
+    "C": 30.0,
+    "mean_test_score": 0.6871,
+    "std_test_score": 0.0075
+  },
+  "winner_orchards": {
+    "n_components": 1200,
+    "gamma": 0.01666667,
+    "C": 30.0,
+    "mean_test_score": 0.2818,
+    "std_test_score": 0.0242
+  },
+  "control": {
+    "run": "./runs/retune_stage2_orchards/control",
+    "grid": [
+      0.0,
+      1.2,
+      13
+    ],
+    "selected_on": "cal",
+    "alpha2": 0.3,
+    "alpha3": 0.5,
+    "cal_macro_f1": 0.2736,
+    "tune_macro_f1": 0.2375,
+    "tune_alive": 10,
+    "baseline_tune_macro_f1": 0.2169,
+    "fixed_cell": [
+      0.2,
+      0.7
+    ],
+    "fixed_cell_tune_macro_f1": 0.2329
+  },
+  "treatment": {
+    "run": "./runs/retune_stage2_orchards/treatment",
+    "grid": [
+      0.0,
+      1.2,
+      13
+    ],
+    "selected_on": "cal",
+    "alpha2": 0.4,
+    "alpha3": 0.5,
+    "cal_macro_f1": 0.2742,
+    "tune_macro_f1": 0.2416,
+    "tune_alive": 10,
+    "baseline_tune_macro_f1": 0.2207,
+    "fixed_cell": [
+      0.2,
+      0.7
+    ],
+    "fixed_cell_tune_macro_f1": 0.2381
+  },
+  "delta": 0.0041,
+  "alive_guard": true,
+  "gate_g4_pass": true
+}
