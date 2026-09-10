@@ -137,6 +137,17 @@ subsample while the Stage-3 experts search on their full capped set.
 **No early stopping.** `n_estimators` is a grid axis instead. Early stopping would make its
 evaluation rows part of model selection, and there is no partition left to host them.
 
+**One thing to know about this search, because it will look wrong otherwise.** Under
+parcel-grouped folds a rare crop can be entirely absent from a fold's training half — Langsat
+has about ten parcels in the whole tile. Plain `XGBClassifier` refuses to fit in that case,
+raising `Invalid classes inferred from unique values of y`, because it requires labels to be
+exactly `0..K-1` and a missing *middle* class leaves a gap. The SVM comparator's search did
+not hit this: `OneVsRestClassifier` drops the absent class and carries on silently. So
+`xgb_search.py` wraps the estimator in `FoldSafeXGB`, which re-encodes per fit and maps
+predictions back, and a class absent from a fold simply scores 0 there. Without it your search
+would lose whole folds and pick a winner from the survivors. This was found by running the
+script, not by reading it.
+
 **Step 3 — the tuned run, fold 2 still unread.**
 
 ```bash

@@ -56,6 +56,7 @@ import time
 
 import numpy as np
 import pandas as pd
+from sklearn.base import BaseEstimator, ClassifierMixin
 from sklearn.model_selection import GridSearchCV, GroupKFold
 from xgboost import XGBClassifier
 
@@ -78,8 +79,7 @@ GRID = {"max_depth": [4, 8, 12],
         "n_estimators": [400, 800],
         "min_child_weight": [1, 10]}
 FIXED = dict(subsample=0.8, colsample_bytree=0.8, reg_lambda=1.0,
-             tree_method="hist", objective="multi:softprob",
-             random_state=RANDOM_STATE, device=XGB_DEVICE)
+             tree_method="hist", random_state=RANDOM_STATE, device=XGB_DEVICE)
 
 ECON = {2101, 2204, 2205, 2302, 2303, 2403, 2404, 2405, 2407, 2413, 2416, 2419, 2420}
 WATER = {4101, 4102, 4103, 4201, 4202, 4203}
@@ -93,6 +93,65 @@ SINK = 4
 
 def log(*a):
     print(f"[{time.strftime('%H:%M:%S')}]", *a, flush=True)
+
+
+class FoldSafeXGB(BaseEstimator, ClassifierMixin):
+    """XGBoost that survives a CV fold whose training half is missing a class.
+
+    THE PROBLEM THIS EXISTS FOR, found by running the search rather than by
+    reading it. XGBClassifier requires the labels it is fitted on to be exactly
+    0..K-1 and raises `ValueError: Invalid classes inferred from unique values
+    of y` otherwise. Encoding the whole search population once and then letting
+    GroupKFold split it does NOT satisfy that: parcels are the grouping unit and
+    the rare crops have very few parcels -- Langsat has about 10 in the entire
+    tile -- so a fold's training half can legitimately contain none of a class.
+    Every fit in that fold then fails, and GridSearchCV reports a winner chosen
+    from whatever survived.
+
+    WHY THE FIX IS THIS ONE. The SVM comparator's search (E4) used
+    OneVsRestClassifier, which drops an absent class and carries on without
+    comment. If XGBoost instead crashed on those folds, the two arms would not
+    be facing the same cross-validation, and the "same budget" claim would be
+    false in a way that is invisible in the output. So this re-encodes per fit,
+    to whatever classes that fit actually sees, and maps predictions back to the
+    caller's label space so the macro-F1 scorer still compares like with like.
+    A class absent from a fold's training half simply scores 0 on that fold,
+    which is the correct thing for a macro average to record.
+
+    Parameters are named explicitly rather than collected in a dict because
+    sklearn's clone() reads them off the __init__ signature, and because an
+    auditable search should not hide its search space behind **kwargs.
+    """
+
+    def __init__(self, max_depth=6, learning_rate=0.1, n_estimators=400,
+                 min_child_weight=1, subsample=0.8, colsample_bytree=0.8,
+                 reg_lambda=1.0, tree_method="hist", random_state=RANDOM_STATE,
+                 device="cpu", n_jobs=None):
+        self.max_depth = max_depth
+        self.learning_rate = learning_rate
+        self.n_estimators = n_estimators
+        self.min_child_weight = min_child_weight
+        self.subsample = subsample
+        self.colsample_bytree = colsample_bytree
+        self.reg_lambda = reg_lambda
+        self.tree_method = tree_method
+        self.random_state = random_state
+        self.device = device
+        self.n_jobs = n_jobs
+
+    def fit(self, X, y, sample_weight=None):
+        self.classes_ = np.unique(y)
+        enc = np.searchsorted(self.classes_, y)
+        p = {k: v for k, v in self.get_params().items() if v is not None}
+        # objective is deliberately NOT forced: with enc guaranteed 0..k-1,
+        # XGBoost infers binary or multiclass correctly for whatever this fold
+        # actually holds.
+        self.model_ = XGBClassifier(**p)
+        self.model_.fit(X, enc, sample_weight=sample_weight)
+        return self
+
+    def predict(self, X):
+        return self.classes_[self.model_.predict(X)]
 
 
 def subsample(idx, labels, per_class, gen):
@@ -110,23 +169,21 @@ def run_search(X_pop, y_pop, groups_pop, tag):
     assert n_cand == 24, f"budget is 24 candidates, this grid has {n_cand}"
     t0 = time.time()
 
-    # Labels must be 0..K-1 for XGBoost. The search only ever compares scores
-    # between candidates, so the encoding never leaves this function -- but it
-    # still has to be reversible, or f1_macro would be computed over the wrong
-    # class identities.
-    classes = np.unique(y_pop)
-    enc = np.searchsorted(classes, y_pop)
-    assert np.array_equal(classes[enc], y_pop), "label encoding is not reversible"
-
-    splits = list(GroupKFold(n_splits=N_SPLITS).split(X_pop, enc, groups=groups_pop))
+    # Labels stay in their own space (LU codes, or superclass codes); FoldSafeXGB
+    # re-encodes per fit to whatever classes that fold actually holds. Encoding
+    # once here instead would crash every fold whose training half is missing a
+    # rare crop -- see the FoldSafeXGB docstring.
+    splits = list(GroupKFold(n_splits=N_SPLITS).split(X_pop, y_pop, groups=groups_pop))
     for i, (a, b) in enumerate(splits):
-        log(f"    fold {i}: train {a.size:,} test {b.size:,}")
+        missing = set(np.unique(y_pop).tolist()) - set(np.unique(y_pop[a]).tolist())
+        note = f"  (train half missing {sorted(missing)})" if missing else ""
+        log(f"    fold {i}: train {a.size:,} test {b.size:,}{note}")
 
-    est = XGBClassifier(**FIXED, **({"n_jobs": XGB_NTHREAD} if XGB_NTHREAD else {}))
+    est = FoldSafeXGB(**FIXED, **({"n_jobs": XGB_NTHREAD} if XGB_NTHREAD else {}))
     gs = GridSearchCV(est, GRID, scoring=SCORING, cv=splits, n_jobs=1,
                       refit=False, verbose=1)
     # Deliberately unweighted -- see the module docstring, point 1.
-    gs.fit(X_pop, enc)
+    gs.fit(X_pop, y_pop)
     df = pd.DataFrame(gs.cv_results_)
     df.to_csv(f"{OUT}/search_{tag}.csv", index=False, encoding="utf-8-sig")
     best = df.loc[df["mean_test_score"].idxmax()]
@@ -144,6 +201,16 @@ if __name__ == "__main__":
         raise SystemExit("SEARCH_FROM=<a SKIP_TEST=1 run directory> is required")
     os.makedirs(OUT, exist_ok=True)
     meta = json.load(open(f"{SEARCH_FROM}/manifest.json"))
+    if meta.get("smoke"):
+        raise SystemExit(
+            f"{SEARCH_FROM} is a SMOKE run. Its saved row indices address the "
+            "500,000-row subsample, not the full matrix, so searching against it "
+            "would train on silently wrong pixels without raising. Point "
+            "SEARCH_FROM at a full SKIP_TEST=1 run.")
+    if meta.get("algo") != "xgb":
+        log(f"NOTE: {SEARCH_FROM} was run with algo={meta.get('algo')!r}. Stage-2 "
+            "and Stage-3 rows are algorithm-dependent by design, so searching "
+            "XGBoost against another algorithm's routes is not the framework rule.")
     npz = os.environ.get("NPZ_OVERRIDE") or meta["npz"]
     log(f"=== xgb search ===  from {SEARCH_FROM}  npz {npz}")
 

@@ -176,6 +176,22 @@ def load_params(path, svm_defaults):
     if s3 and not any(k in ("orchards", "plantation", "field", "tree") for k in s3):
         s3 = {g: s3 for g in ("orchards", "plantation", "field")}
     p3 = {g: dict(d3, **s3.get(g, {})) for g in ("orchards", "plantation", "field", "tree")}
+
+    # A partial search writes empty stage blocks, and an empty block silently
+    # falls back to the built-in defaults -- which for the XGB arm are the
+    # collaborator's published values, selected for a different architecture on a
+    # different split. Shipping those as if they were searched would be a quiet
+    # asymmetry in the middle of a fairness contract, so say so loudly.
+    fell_back = [name for name, block in
+                 [("stage1", cfg.get("stage1")), ("stage2", cfg.get("stage2"))]
+                 + [(f"stage3.{g}", s3.get(g)) for g in ("orchards", "plantation", "field")]
+                 if not block]
+    if fell_back:
+        print(f"[cascade_algo] WARNING: {path} specifies nothing for "
+              f"{', '.join(fell_back)}; these stages fall back to built-in "
+              f"{'XGB template' if ALGO == 'xgb' else 'SVM'} defaults, which are "
+              f"NOT search output. Declare them or state the gap in the manifest.",
+              flush=True)
     return p1, p23, p3
 
 
