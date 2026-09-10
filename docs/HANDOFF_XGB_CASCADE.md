@@ -209,6 +209,22 @@ resolved by this handoff.
 3. **XGBoost with `hist` and multiple threads is not bit-reproducible.** That is acceptable;
    declare it. Record device, thread count and xgboost version in your manifest, which the
    script does automatically.
+4. **E7 is not a single run, and your cell will be.** This is the asymmetry we are least
+   comfortable with, so it is stated in full. E7 is a composition: Stage 1 comes from one run
+   (M5), Stage 2 and the orchards expert from a second (E4), plantation and field from M5
+   again, joined by a script that predicts fold 2 and scores it once. E4's orchards expert was
+   also fitted on a population drawn from a different random generator than a single run would
+   use — the same rule, a different draw. Your five steps produce one coherent end-to-end run
+   instead. So the two cells of this pair differ in the algorithm **and** in whether the
+   cascade was assembled or trained in one pass.
+
+   We do not think this changes the result much: every component is the same estimator on the
+   same rule, and the composition script reuses the same hard-routing construction the trainer
+   uses. But we cannot prove that, and it is not nothing. The clean fix is for us to run
+   `configs/e7_svm.json` end to end at full scale as a single run and use that as your
+   comparator instead. It costs us roughly a day of compute and it has not been done. If you
+   or the professor want the pair to be single-run against single-run, say so and we will run
+   it before you start step 3 — that is the moment the choice stops being free.
 
 ## 7a. What has and has not been tested, before you spend days on it
 

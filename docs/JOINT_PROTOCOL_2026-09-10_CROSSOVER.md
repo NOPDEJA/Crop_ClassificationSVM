@@ -141,6 +141,14 @@ directly, and no log transformation is applied to probabilities to manufacture a
    7 step 1, not after.
 4. **Determinism.** XGBoost with histogram tree method and multiple threads is not
    bit-reproducible. Accepted and declared, rather than forced to single-thread.
+5. **The two cells of P1 are not assembled the same way.** E7 is a composition of two runs
+   plus a script, not a single training pass, and its orchards expert was fitted on a
+   population drawn from a different generator than a single run would use. The XGBoost cell
+   will be one end-to-end run. So P1 varies the algorithm *and* the assembly method. Every
+   component follows the same rule and the composition reuses the trainer's own routing
+   construction, so we expect the effect to be small, but it is unmeasured. Removing it costs
+   about a day: re-run `configs/e7_svm.json` end to end at full scale and make that the
+   comparator. **This is decision 5 below, and it expires when the XGBoost cell starts.**
 
 ## 6. Still open on his side
 
@@ -175,3 +183,6 @@ under his controls, and report it beside his XGBoost number.
    previously observed? **This one is time-critical.**
 3. Is 24 candidates x 3 folds per stage accepted as the declared budget for both cells?
 4. Does he accept the framework rule in section 3 in place of identical training rows?
+5. Do we re-run the SVM comparator as a single end-to-end pass so the pair is single-run
+   against single-run (about a day of compute), or accept E7-as-composed and disclose
+   asymmetry 5? **Also time-critical.**
