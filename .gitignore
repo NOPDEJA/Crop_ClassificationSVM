@@ -38,3 +38,6 @@ __pycache__/
 *.log.err
 *.err
 test_*.py
+
+# Scratch: vendored PDF tooling and extracted screenshots, not project content
+tmp/

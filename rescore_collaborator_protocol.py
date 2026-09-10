@@ -11,6 +11,17 @@ version of this script mirrored their OLD protocol, in which there was no compos
 cascade at all. There is one now, and it changes the population their crop numbers
 are computed on, so the old rescore is superseded.
 
+RE-VERIFIED 2026-09-03 at their HEAD `f5f1a6a`. `inference.py` and `extract_all.py`
+no longer exist -- the pipeline was refactored into per-model
+`code/extraction/extract_*_final_pipeline.py` +
+`code/preprocessing/preprocess_*_final_pipeline.py`, orchestrated by
+`code/inference/full_pipeline.py <year>`. The chain's SUBSTANCE is unchanged (water
+>= 0.56 rejected, then buildings >= 0.56 rejected from the remainder, flat 14-class
+crop model on the survivors), so this script's protocol is still correct; only the
+filenames above are stale. The rejection now happens at extraction time -- each
+downstream extractor reads the upstream `*_indices_<year>.csv` and skips those
+(row, col) pairs.
+
 WHAT THEIR PROTOCOL ACTUALLY IS, AT THAT COMMIT
 -----------------------------------------------
 1. `extract_all.py` builds the inference population by RESERVOIR SAMPLING at most
@@ -45,9 +56,13 @@ Approximated, and this must be said in the report text:
     else non-crop non-water non-forest, so there is no probability of ours that
     means what theirs means. Two variants are therefore reported: `water_only`,
     which skips the building stage entirely, and `water_plus_others`, which uses
-    P(others) >= 0.56 as a stand-in. The truth is bracketed by the two -- the
-    stand-in drops strictly more non-crop rows than a real building filter would,
-    so it flatters us, and `water_only` drops strictly fewer, so it does not.
+    P(others) >= 0.56 as a stand-in. These are two sensitivity scenarios, NOT a
+    bracket: the claim that "the truth is bracketed by the two" was WITHDRAWN
+    2026-08-27 because the two scenarios order oppositely on the two macro columns
+    (0.2673 vs 0.2757 on the 13 crops, 0.3078 vs 0.3060 on the 14 labels), so they
+    bound nothing. What our number is under their exact protocol stays unknown
+    until one population and one denominator are agreed. See docs/REPORT_2026-08-27.md
+    section 6.
   * THE POPULATION. Theirs is the whole tile. Ours is fold 2 only, because that is
     the only ground our cascade has a legitimate prediction for. This makes our
     denominator a parcel-disjoint held-out third and theirs a sample that overlaps

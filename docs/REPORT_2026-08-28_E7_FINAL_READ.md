@@ -63,9 +63,13 @@ Alive-crops count (F1 >= 0.01) held at **10/13** in both M5 and the final config
   boundary the wrong way even though it won the honest GroupKFold search and Gate G4 overall.
   Not chased further here — fold 2 is read, the plan's scope ends at reporting.
 - **Durian, rubber, cassava, pineapple, longan, mangosteen** moved by small amounts in both
-  directions (-0.02 to +0.00), consistent with retrain noise at this scale — see G3's own
-  measured pool-draw noise floor (mean +0.0078, range 0.0072-0.0087) as the yardstick for what
-  counts as a real signal versus noise here.
+  directions (-0.02 to +0.00). These are small relative to the scale of change this cascade
+  produces between retrains, but that is an impression, not a measurement: **no noise floor for
+  per-crop E7 deltas has been estimated.** An earlier version of this bullet cited G3's
+  three-draw result (mean +0.0078, range 0.0072-0.0087) as a "noise floor" — that was wrong and
+  is corrected here. G3's nonzero mean is its measured *treatment effect*, and its between-draw
+  spread describes sensitivity to the pool draw for *that* experiment; neither quantity bounds
+  the retrain variability of an unrelated per-crop change in E7.
 
 ## Per-experiment summary (E1-E7)
 
