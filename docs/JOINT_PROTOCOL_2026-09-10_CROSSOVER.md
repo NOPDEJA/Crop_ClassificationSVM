@@ -50,9 +50,14 @@ A **cell** is one algorithm inside one architecture on one arm. A **pair** is tw
 differing only in algorithm. Only cells within a pair may appear in the same table.
 
 Our E7 run is cell P1-SVM: strict macro F1 **0.2429** over 5,500,269 fold-2 rows, hard
-routing. It is the comparator for P1-XGB, and it is used **as already run**. We are not
-re-running it to match the XGBoost cell, because there is nothing about the XGBoost cell that
-requires it to change.
+routing. It is the comparator for P1-XGB, and the working assumption is that it is used **as
+already run**.
+
+One caveat on that, because it is not free: E7 is a *composition* of two runs rather than a
+single training pass (asymmetry 5). Using it as-is therefore means the pair varies the
+assembly method alongside the algorithm. Re-running it as one end-to-end pass removes that,
+costs about a day, and is decision 5. Until that decision is taken, "as already run" is the
+default, not a settled conclusion.
 
 His repaired-pipeline result is **not** cell P2-XGB and must not be quoted as one. It is
 scored on a population that is 100% crop pixels with `others` support 0, and the score
