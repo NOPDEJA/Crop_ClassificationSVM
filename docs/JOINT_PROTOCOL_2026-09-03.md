@@ -1,5 +1,15 @@
 # Joint Paper: Proposed Angle and Shared Protocol
 
+> **SUPERSEDED 2026-09-10 by `docs/JOINT_PROTOCOL_2026-09-10_CROSSOVER.md`.**
+> The 2x2 factorial on a common 15-column feature set is withdrawn: it required four new
+> runs before anything could be said, and rule (A) is satisfied by a single pair without
+> it. The replacement is a crossover — each side runs the other's algorithm inside its own
+> architecture on its own dataset. Control 5 ("the same ordered training pixel IDs") is
+> also withdrawn as unsatisfiable inside a cascade and replaced by a framework rule.
+> This document is kept unedited for the history of how the design got here; do not
+> execute from it.
+
+
 Rayong crop classification, 2018 LDD survey, tile 47PQQ.
 Drafted 2026-09-03, after reading the collaborator's 2 September 2026 report and their
 repository at commit `f5f1a6a`.

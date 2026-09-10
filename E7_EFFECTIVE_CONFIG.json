@@ -1,0 +1,275 @@
+{
+  "what_this_is": "The effective configuration of run E7, the SVM comparator for the XGBoost crossover. Tier A is the architecture and is identical in both arms. Tier B is the algorithm and is the other side's to choose. See docs/HANDOFF_XGB_CASCADE.md.",
+  "comparator_result": {
+    "run": "./runs/s2_2018_3date_parcel_e7_final",
+    "rows": 5500269,
+    "macro_f1_strict_hard": 0.2429,
+    "weighted_f1": 0.7949,
+    "baseline_m5_macro_f1": 0.2344,
+    "endpoint": "hard",
+    "population": "fold 2, natural (uncapped), non-crop truth mapped to 0"
+  },
+  "tier_a_architecture": {
+    "npz": {
+      "path": "./aligned_features/svm_s2_3date_m3_features_labels.npz",
+      "rows": 24323769,
+      "features": 30,
+      "sha256": "34ec42c7f3beb5417feed931672ae1f0a282370d9efe89a99df9a57d335b7b51",
+      "bytes": 2967504406
+    },
+    "feature_names_in_order": [
+      "BSI_47PQQ_2018-10-31.tif",
+      "BSI_47PQQ_2018-11-30.tif",
+      "BSI_47PQQ_2018-12-31.tif",
+      "EVI_47PQQ_2018-10-31.tif",
+      "EVI_47PQQ_2018-11-30.tif",
+      "EVI_47PQQ_2018-12-31.tif",
+      "MSAVI_47PQQ_2018-10-31.tif",
+      "MSAVI_47PQQ_2018-11-30.tif",
+      "MSAVI_47PQQ_2018-12-31.tif",
+      "NDBI_47PQQ_2018-10-31.tif",
+      "NDBI_47PQQ_2018-11-30.tif",
+      "NDBI_47PQQ_2018-12-31.tif",
+      "NDVI_47PQQ_2018-10-31.tif",
+      "NDVI_47PQQ_2018-11-30.tif",
+      "NDVI_47PQQ_2018-12-31.tif",
+      "NDWI_47PQQ_2018-10-31.tif",
+      "NDWI_47PQQ_2018-11-30.tif",
+      "NDWI_47PQQ_2018-12-31.tif",
+      "SWIR_NIR_47PQQ_2018-10-31.tif",
+      "SWIR_NIR_47PQQ_2018-11-30.tif",
+      "SWIR_NIR_47PQQ_2018-12-31.tif",
+      "SWIR_RATIO_47PQQ_2018-10-31.tif",
+      "SWIR_RATIO_47PQQ_2018-11-30.tif",
+      "SWIR_RATIO_47PQQ_2018-12-31.tif",
+      "MTCI_47PQQ_2018-10-31.tif",
+      "B11_47PQQ_2018-10-31.tif",
+      "MTCI_47PQQ_2018-11-30.tif",
+      "B11_47PQQ_2018-11-30.tif",
+      "MTCI_47PQQ_2018-12-31.tif",
+      "B11_47PQQ_2018-12-31.tif"
+    ],
+    "valid_cols": {
+      "sha256": "394a42f05d4ef71e6c3270cc4fb38075f42683eb24255ab033cbf89ecccf5143",
+      "shape": [
+        30
+      ],
+      "dtype": "int64"
+    },
+    "split_assign": {
+      "sha256": "f05e8c9c65f9123363d03ca7a1ece5655974c5ee6b1097f7943f687f155fc41a",
+      "shape": [
+        24323769
+      ],
+      "dtype": "int8"
+    },
+    "parcel_id_row": {
+      "sha256": "230b16bb7109c7bdc6827c8cd20c981071b33d364c7ece9ba8769e296c80f488",
+      "shape": [
+        24323769
+      ],
+      "dtype": "int32"
+    },
+    "label_raster": {
+      "path": "./label/label_47PQQ_buffered.tif",
+      "sha256": "4f924ca4d084cb8f48b0ab22de8451e19d4eb4fb55166ef6a654c10867988cdd",
+      "bytes": 4175449,
+      "note": "3-pixel-eroded; cannot be regenerated from rasterize_parcel.py because compound mixed-crop LU_ID_L3 codes are unhandled, so the raster itself is the artifact of record"
+    },
+    "random_state": 42,
+    "superclasses": {
+      "econ": [
+        2101,
+        2204,
+        2205,
+        2302,
+        2303,
+        2403,
+        2404,
+        2405,
+        2407,
+        2413,
+        2416,
+        2419,
+        2420
+      ],
+      "water": [
+        4101,
+        4102,
+        4103,
+        4201,
+        4202,
+        4203
+      ],
+      "forest": [
+        3100,
+        3101,
+        3200,
+        3201,
+        3300,
+        3301,
+        3401,
+        3501
+      ],
+      "others": "every remaining valid code"
+    },
+    "stage2_groups": {
+      "orchards": [
+        2403,
+        2404,
+        2407,
+        2413,
+        2416,
+        2419,
+        2420
+      ],
+      "plantation": [
+        2302,
+        2303,
+        2405
+      ],
+      "field": [
+        2101,
+        2204,
+        2205
+      ],
+      "sink": "everything Stage 1 called economic that is not one of the 13"
+    },
+    "merge_tree": false,
+    "sampling": {
+      "samples_per_lu": 400000,
+      "cap_econ": 1000000,
+      "cap_water": 500000,
+      "cap_forest": 600000,
+      "cap_others": 800000,
+      "per_group_cap": 200000,
+      "per_lu_cap": 70000
+    },
+    "crossfit_s1_parts": 3,
+    "crossfit_s1_route_agreement": 0.9446,
+    "fold1_halving": "by parcel, stratified by parcel label",
+    "calibration": {
+      "scheme": "per-class Platt sigmoid on fold 1's calibration half; the base estimator is fitted once on fold 0 and never refitted",
+      "calib_max": 300000,
+      "sampling": "random, NOT per-class, so natural priors survive",
+      "score_fed_to_the_sigmoid": "SVM: OneVsRest decision_function margins. XGBoost: predict(output_margin=True), the pre-softmax multiclass scores. Both arms then use the SAME sigmoid procedure, class order, fallback and renormalisation. Feeding log(predict_proba) instead would be an arbitrary transformation and is not permitted.",
+      "fallback": "a class with fewer than 2 positives among the calibration rows uses the plain logistic of its raw score",
+      "stage_populations": {
+        "stage1": "all calibration-half rows",
+        "stage2": "calibration-half rows the arm's OWN Stage 1 called economic",
+        "stage3": "calibration-half rows of the expert's TRUE group, regardless of whether Stage 1 or 2 routed them correctly"
+      }
+    },
+    "weighting": {
+      "scheme": "subtype mass (CLASS_WEIGHT=subtype)",
+      "stage1": "unweighted",
+      "stage2": "sqrt-tempered over post-cap subtype counts, renormalised so each group's TOTAL mass is unchanged -- mass moves only inside a group, so Stage 2's four-way routing prior is untouched",
+      "stage3": "unweighted, all three experts. Gate G5 tested weighting the plantation and orchards experts and FAILED at -0.0012 with the alive-crops guard broken, so it is deliberately absent.",
+      "weight_vector": {
+        "sha256": "704d2fadbbc43c641fc2b1331fb0e99c7a3b8056b98b1d47991431654f47f7bd",
+        "shape": [
+          800000
+        ],
+        "dtype": "float64"
+      },
+      "control_wording": "the same observation-level weight vector is passed to each algorithm's native loss. NOT 'the same cost-sensitive learning rule' -- a row weight under a native softmax is not equivalent to the same weight across 13 independent binary problems."
+    },
+    "operating_point": {
+      "grid": "alpha2 x alpha3, each 0.0 to 1.2 in 13 steps",
+      "selected_on": "fold 1's CALIBRATION half",
+      "reported_on": "fold 1's TUNING half",
+      "objective": "strict macro F1 over the 13 crops",
+      "e7_selected_values": {
+        "alpha2": 0.4,
+        "alpha3": 0.5
+      },
+      "per_arm": "each arm selects its OWN alpha pair. E7's values are recorded for reference and must NOT be copied into the XGBoost arm."
+    },
+    "missing_values": {
+      "policy": "SimpleImputer(strategy='median'), fitted on each stage's own fit rows",
+      "rows_dropped": "none, in either arm, so the population is identical regardless",
+      "caveat": "Stage-2 fit populations are algorithm-dependent, so the two arms' medians are fitted on different rows and can differ. The policy is identical; the imputed values are not guaranteed to be.",
+      "ablation": "XGB_NATIVE_NAN=1 is a separately labelled run, never the headline"
+    },
+    "endpoint": {
+      "primary": "hard cascade -- commit to the argmax branch at each stage",
+      "secondary": "joint composition, reported but not the headline",
+      "why_frozen": "the script emits both; without fixing this in advance either arm could pick the more favourable one after seeing both"
+    },
+    "scoring": {
+      "convention": "strict -- the whole fold-2 population, non-crop truth mapped to 0, an explicit ordered 13-label list, no masking before the metric",
+      "implemented_by": "train_parcel_cascade.py (the compose-and-score block), and e7_final_cascade_fold2_read.py for E7 itself",
+      "do_not_use": "evaluate_end_to_end.py -- it scores every NPZ row rather than restricting to fold 2, so it would produce a train-inclusive number",
+      "macro_denominator": 13
+    },
+    "test_discipline": {
+      "rule": "SKIP_TEST=1 until one predeclared final read",
+      "honesty_note": "fold 2 is NOT globally untouched. M5 and earlier checkpoints read it, and E7 read it once more. It must be described as a previously observed partition."
+    }
+  },
+  "tier_b_algorithm_svm_arm": {
+    "estimator": "OneVsRestClassifier(Pipeline(SimpleImputer, StandardScaler, Nystroem(rbf), LinearSVC))",
+    "stage1": {
+      "n_components": 250,
+      "gamma": 0.02,
+      "C": 1.0
+    },
+    "stage2": {
+      "n_components": 1200,
+      "gamma": 0.01666667,
+      "C": 30.0,
+      "source": "E4 GroupKFold(3) search, Gate G4 PASS",
+      "search_mean_f1_macro": 0.6871
+    },
+    "stage3": {
+      "orchards": {
+        "n_components": 1200,
+        "gamma": 0.01666667,
+        "C": 30.0,
+        "source": "E4 GroupKFold(3) search, Gate G4 PASS",
+        "search_mean_f1_macro": 0.2818
+      },
+      "plantation": {
+        "n_components": 1200,
+        "gamma": null,
+        "C": 10.0,
+        "source": "M5, untouched by E1-E7"
+      },
+      "field": {
+        "n_components": 1200,
+        "gamma": null,
+        "C": 10.0,
+        "source": "M5, untouched by E1-E7"
+      }
+    },
+    "tuning_provenance": {
+      "cleanly_searched": [
+        "stage2",
+        "stage3.orchards"
+      ],
+      "frozen_from_a_leaky_inner_cv": [
+        "stage1",
+        "stage3.plantation",
+        "stage3.field"
+      ],
+      "disclosure": "This arm is a HYBRID. The XGBoost arm searches all five stages under GroupKFold, so it receives MORE clean tuning than this one, not less. Until the matching clean SVM retune is run, the paired difference is 'algorithm plus tuning regime', not 'algorithm'.",
+      "e4_budget": {
+        "candidates": 24,
+        "folds": 3,
+        "grouping": "parcel_id_row",
+        "scoring": "f1_macro",
+        "population": "fold 0 only",
+        "weighted_search": false,
+        "note": "E4 searched Stage 2 unweighted and refitted it weighted. The XGBoost search copies that rather than fixing it in one arm only."
+      },
+      "grid_ceiling": "Both E4 winners took the MAXIMUM n_components (1200) and the MAXIMUM C (30), but gamma landed at 0.5x the rule, which is interior to its grid. So the search hit its capacity ceiling on two of three axes, not all three -- the arm is plausibly under-tuned, but that is not proven categorically."
+    }
+  },
+  "row_identities": {
+    "why": "Freezing rules is not the same as freezing rows. Two runs following identical rules can still fit different rows, and the Stage-2 population is algorithm-dependent BY DESIGN.",
+    "framework_rule": "Stage 2 trains on whatever your OWN Stage 1 routed to it. The rule is fixed and identical in both arms; the resulting rows differ and are recorded, not forced to match. Routing the XGBoost arm with SVM-generated routes would mean its Stage 1 was never tested.",
+    "m5_hashes": {},
+    "note": "Stage 1's fit rows were not hashed in M5; the trainer now saves them as stage1_fit_idx.npy for every future run."
+  },
+  "reproduction_caveat": "configs/e7_svm.json reproduces E7's RECIPE, not E7's bytes. E7's orchards expert was fitted on a population drawn from E4's own generator (seed 777), whereas a single-script run draws it from the main seed-42 sequence: the same rule, a different draw. Stage 2 does replay byte-identically, because s2mass_stage2.py replayed the trainer's own RNG to obtain its pool."
+}

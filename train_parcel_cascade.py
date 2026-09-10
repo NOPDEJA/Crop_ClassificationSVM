@@ -94,6 +94,8 @@ from sklearn.svm import LinearSVC
 from config import (NPZ, RANDOM_STATE, SAMPLES_PER_LU,
                     CAP_ECON, CAP_WATER, CAP_FOREST, CAP_OTHERS,
                     PER_GROUP_CAP, PER_LU_CAP)
+from cascade_algo import (ALGO, load_params, make_xgb, manifest_entry,
+                          subtype_weights)
 
 # -----------------------
 # Config
@@ -108,9 +110,17 @@ PARCEL_ID = "./splits/parcel_id_row.npy"
 # leaky inner CV, which may make them suboptimal -- but as externally fixed
 # constants they cannot bias a genuinely untouched test score, and freezing is
 # what removes the pixel-level inner CV entirely.
-P1 = dict(n_components=250, gamma=0.02, C=1.0)
-P23 = dict(n_components=600, gamma=None, C=10.0)
-P3 = dict(P23, n_components=int(os.environ.get("P3_COMPONENTS", 600)))
+SVM_P1 = dict(n_components=250, gamma=0.02, C=1.0)
+SVM_P23 = dict(n_components=600, gamma=None, C=10.0)
+SVM_P3 = dict(SVM_P23, n_components=int(os.environ.get("P3_COMPONENTS", 600)))
+
+# PARAMS=<file.json> supplies per-stage hyperparameters for whichever arm is
+# running. Unset, the SVM constants above apply to every stage and the run is
+# the M5 code path exactly. The E7 recipe needs a file because E7 is NOT one
+# uniform configuration: Stage 2 and the orchards expert carry E4's retuned
+# capacity while plantation and field keep M5's, so P3 has to vary per expert.
+P1, P23, P3_OF = load_params(os.environ.get("PARAMS", ""),
+                             (SVM_P1, SVM_P23, SVM_P3))
 ALPHA2 = float(os.environ.get("ALPHA2", 0.0))
 ALPHA3 = float(os.environ.get("ALPHA3", 0.0))
 
@@ -141,11 +151,25 @@ SKIP_TEST = os.environ.get("SKIP_TEST", "0") == "1"     # keep fold 2 unread
 # negative carries its own class's weight. Routing it through the pipeline needs
 # sklearn's metadata routing, which is enabled ONLY on this path so the default
 # run is byte-for-byte the M5 code path.
+#
+# CLASS_WEIGHT=subtype is a THIRD scheme and the one E7 actually ran: the
+# subtype-mass weights of s2mass_stage2.py at Stage 2 ONLY, with every Stage-3
+# expert left unweighted. It is not a variant of sqrt -- it moves mass only
+# inside a crop group and leaves Stage 2's four-way routing prior untouched.
+# E7's orchards expert is unweighted because Gate G5 (Stage-3 subtype mass in
+# plantation and orchards) FAILED its gate at -0.0012 with the alive-crops guard
+# broken, so that treatment is deliberately absent from the final config.
 CLASS_WEIGHT = os.environ.get("CLASS_WEIGHT", "")
 WEIGHTED = CLASS_WEIGHT == "sqrt"
-if CLASS_WEIGHT and not WEIGHTED:
-    raise SystemExit(f"CLASS_WEIGHT={CLASS_WEIGHT!r} is not a scheme I know; use 'sqrt'")
-if WEIGHTED:
+SUBTYPE = CLASS_WEIGHT == "subtype"
+if CLASS_WEIGHT and not (WEIGHTED or SUBTYPE):
+    raise SystemExit(
+        f"CLASS_WEIGHT={CLASS_WEIGHT!r} is not a scheme I know; use 'sqrt' or 'subtype'")
+if (WEIGHTED or SUBTYPE) and ALGO == "svm":
+    # Only the SVM path needs metadata routing, and only because LabelBinarizer
+    # sits between the weights and the estimator. XGBoost takes sample_weight
+    # directly, so enabling routing there would change sklearn's global config
+    # for no reason.
     import sklearn
     sklearn.set_config(enable_metadata_routing=True)
 ECON = {2101, 2204, 2205, 2302, 2303, 2403, 2404, 2405, 2407, 2413, 2416, 2419, 2420}
@@ -190,8 +214,11 @@ CROPS = sorted(ECON)
 os.makedirs(OUT, exist_ok=True)
 rng = np.random.default_rng(RANDOM_STATE)
 manifest = {"smoke": SMOKE, "params_stage1": P1, "params_stage23": P23,
-            "params_stage3": P3, "npz": NPZ, "merge_tree": MERGE_TREE,
+            "params_stage3": P3_OF, "npz": NPZ, "merge_tree": MERGE_TREE,
             "pca": False, "class_weight": CLASS_WEIGHT or None, "upsampling": False,
+            "crossfit_s1": CROSSFIT_S1, "calib_max": CALIB_MAX,
+            "alpha_source": "ALPHA2/ALPHA3 env at compose time",
+            **manifest_entry(),
             "started": time.strftime("%Y-%m-%d %H:%M:%S")}
 
 
@@ -215,7 +242,7 @@ def base_pipe(p):
     scaler, svc = StandardScaler(), LinearSVC(C=p["C"], class_weight=None,
                                               max_iter=5000,
                                               random_state=RANDOM_STATE)
-    if WEIGHTED:
+    if WEIGHTED or SUBTYPE:
         # only the SVC consumes the weights; the scaler must decline explicitly
         # or routing refuses to pass anything through the pipeline at all
         scaler = scaler.set_fit_request(sample_weight=False)
@@ -291,17 +318,43 @@ class PlattCalibrated:
         return self.classes_[self.predict_proba(X).argmax(1)]
 
 
-def fit_calibrated(X, y, fit_idx, cal_idx, p, tag, weighted=False):
+def make_base(p):
+    """THE ESTIMATOR SEAM. Everything else in this file is architecture.
+
+    ALGO=svm returns exactly what M5 and E7 constructed, so the default path is
+    textually and behaviourally unchanged. See cascade_algo.py for why the
+    scaler, the Nystroem map and the OvR wrapper are dropped rather than forced
+    on XGBoost, and why calibration is NOT dropped with them.
+    """
+    return OneVsRestClassifier(base_pipe(p)) if ALGO == "svm" else make_xgb(p)
+
+
+def fit_calibrated(X, y, fit_idx, cal_idx, p, tag, weighted=False, sw=None):
     """Fit the base on fit_idx (fold 0), then only the sigmoids on cal_idx (fold 1).
 
     `weighted` is per call, not global: only Stage 2 and the Stage-3 experts get
     the cost-sensitive treatment, and the sigmoids are never weighted -- they are
     fitted on natural-prior validation rows, and reweighting them would move the
     probabilities off the calibration prior the operating-point sweep divides by.
+
+    `sw` is an explicit per-row weight vector over fit_idx, used by the subtype
+    scheme whose weights depend on two label arrays (group and LU code) and so
+    cannot be derived from `y` alone inside this function. It takes precedence
+    over `weighted`. Both arms receive the SAME vector -- but note what that
+    control does and does not claim: the numbers are identical, their EFFECT is
+    not, because a row weight under a native softmax loss is not the same thing
+    as the same weight applied across 13 independent binary problems. The
+    control is "the same observation-level weight vector is passed to each
+    algorithm's native loss", never "the same cost-sensitive learning rule".
     """
     log(f"  {tag}: base fit on {fit_idx.size:,} rows (fold 0)")
-    base = OneVsRestClassifier(base_pipe(p))
-    if weighted and WEIGHTED:
+    base = make_base(p)
+    if sw is not None:
+        assert sw.size == fit_idx.size, f"{tag}: weight vector does not match fit rows"
+        log(f"  {tag}: explicit sample weights, mean {sw.mean():.4f} "
+            f"range {sw.min():.4f}-{sw.max():.4f}")
+        base.fit(X[fit_idx], y[fit_idx], sample_weight=sw)
+    elif weighted and WEIGHTED:
         wmap = tempered_weights(y[fit_idx], tag)
         manifest.setdefault("class_weights", {})[tag] = {
             str(k): round(v, 4) for k, v in wmap.items()}
@@ -475,6 +528,11 @@ if __name__ == "__main__":
           np.where(np.isin(y, list(FOREST)), 4, 3))).astype(np.int32)
 
     fit1 = stage1_cap(tr, y, sup)                      # per-LU then per-superclass cap
+    # Stage 1's fit rows were the only ones E1 left unsaved -- Stage 2, Stage 3
+    # and every calibration set were already hashed. They are needed here because
+    # a hyperparameter search must draw from the stage's OWN fit population, and
+    # recovering it otherwise means replaying the whole RNG sequence.
+    save_hashed("stage1_fit_idx", fit1, f"{OUT}/stage1_fit_idx.npy")
     log(f"  train rows after caps: {fit1.size:,}  dist "
         f"{dict(zip(*np.unique(sup[fit1], return_counts=True)))}")
     manifest["stage1_train"] = {int(k): int(v) for k, v in
@@ -557,7 +615,14 @@ if __name__ == "__main__":
     fit2 = cap(c_tr, g_of[c_tr], PER_GROUP_CAP)
     save_hashed("stage2_fit_idx", fit2, f"{OUT}/stage2_fit_idx.npy")
     save_hashed("stage2_cal_idx", c_va_cal, f"{OUT}/stage2_cal_idx.npy")
-    m2 = fit_calibrated(X, g_of, fit2, c_va_cal, P23, "stage2", weighted=True)
+    sw2 = None
+    if SUBTYPE:
+        sw2, mass = subtype_weights(fit2, g_of, y, GNAME, SINK)
+        np.save(f"{OUT}/stage2_sample_weight.npy", sw2)
+        manifest["stage2_subtype_mass"] = mass
+        manifest.setdefault("fit_cal_hashes", {})["stage2_sample_weight"] = \
+            hashlib.sha256(sw2.tobytes()).hexdigest()
+    m2 = fit_calibrated(X, g_of, fit2, c_va_cal, P23, "stage2", weighted=True, sw=sw2)
     joblib.dump(m2, f"{OUT}/stage2_model.joblib")
     if SKIP_TEST:
         p2 = None
@@ -585,7 +650,7 @@ if __name__ == "__main__":
         fit3 = cap(g_tr, y[g_tr], PER_LU_CAP)        # cap only; NO upsampling
         save_hashed(f"stage3_{GNAME[g]}_fit_idx", fit3, f"{OUT}/stage3_{GNAME[g]}_fit_idx.npy")
         save_hashed(f"stage3_{GNAME[g]}_cal_idx", g_va_cal, f"{OUT}/stage3_{GNAME[g]}_cal_idx.npy")
-        m3 = fit_calibrated(X, y, fit3, g_va_cal, P3, f"stage3-{GNAME[g]}",
+        m3 = fit_calibrated(X, y, fit3, g_va_cal, P3_OF[GNAME[g]], f"stage3-{GNAME[g]}",
                             weighted=True)
         joblib.dump(m3, f"{OUT}/stage3_{GNAME[g]}_model.joblib")
         experts[g], e_classes[g] = m3, m3.classes_

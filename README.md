@@ -9,18 +9,33 @@ first. It is a glossary, not a spec.
 
 ---
 
-## Current status (2026-08-24)
+## Current status (2026-09-10)
 
-The active work is the **Sentinel-2-only arms** (`s2_2018_3date_v2`, `s2_2018_5date`). The
-earlier DEM + Sentinel-1 + Sentinel-2 phase is complete and is kept for reference.
+The active work is the **joint paper with the XGBoost study**. The modelling side closed on
+2026-08-28 with run **E7**, the final consolidated cascade; the current work is packaging
+that cascade so the collaborator can run XGBoost inside it. See
+[`docs/JOINT_PROTOCOL_2026-09-10_CROSSOVER.md`](docs/JOINT_PROTOCOL_2026-09-10_CROSSOVER.md)
+for the comparison rules and
+[`docs/HANDOFF_XGB_CASCADE.md`](docs/HANDOFF_XGB_CASCADE.md) for what he runs.
 
-The most recent result, on a **parcel-disjoint** split — no parcel contributes pixels to
-both training and test:
+E7's result, on a **parcel-disjoint** split — no parcel contributes pixels to both training
+and test:
 
 | | rows scored | macro F1 | weighted F1 |
 |---|---|---|---|
-| hard routing | 5,500,269 | **0.2248** (95 % CI 0.2071–0.2389) | 0.8018 |
-| joint routing | 5,500,269 | 0.1949 | 0.7725 |
+| hard routing (headline) | 5,500,269 | **0.2429** | 0.7949 |
+| M5, the baseline it improved on | 5,500,269 | 0.2344 | 0.7974 |
+
+The gain over M5 is **+0.0085**, against a parcel-level bootstrap interval of ±0.014 on this
+metric. It is an observed test-fold gain, not a separated one. Weighted F1 moved the other
+way. The whole of the preceding year bought +0.0096, so this is the scale the project
+operates at, and saying so plainly is more useful than rounding it up.
+
+> **Read older numbers in this repository with care**, in two ways. Figures before
+> 2026-08-23 were measured on a pixel-level split where 86.1 % of parcels contributed a
+> fitted pixel. Figures before 2026-08-25 may also use the masked scoring convention, which
+> read ~0.034 macro F1 high. Check which convention and which split a number came from
+> before placing it beside another.
 
 > **Read older numbers in this repository with care.** Every figure produced before
 > 2026-08-23 was measured on a pixel-level split, and 86.1 % of parcels contributed at
@@ -67,7 +82,10 @@ the pixel-level splits. Writes `splits/`.
 ### 5 — Train
 | file | what it trains |
 |---|---|
-| `train_parcel_cascade.py` | **current** — the whole cascade under the parcel split, one balancing mechanism, frozen hyperparameters |
+| `train_parcel_cascade.py` | **current** — the whole cascade under the parcel split. `ALGO=svm` (default) or `ALGO=xgb`; per-stage settings from `PARAMS=<file>.json` |
+| `cascade_algo.py` | **the estimator seam** — the only place the algorithm is chosen. Everything outside it is architecture and is shared by both arms |
+| `xgb_search.py` | the XGBoost arm's hyperparameter search, at the SVM comparator's declared budget |
+| `emit_e7_config.py` | writes `E7_EFFECTIVE_CONFIG.json`, the contract that says what "same architecture" means |
 | `stage1_weight_scale.py`, `stage2_weighted.py`, `stage3_new_weight.py` | the published per-stage pipeline (pixel splits, hyperparameter searches) |
 | `run_chain.sh` | runs a whole arm end to end behind a per-arm lock |
 | `queue_*.sh` | serialise arms so two cascades never contend for memory |
