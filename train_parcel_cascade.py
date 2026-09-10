@@ -58,7 +58,14 @@ Env:
                  2 are NOT raised, because their fit sets are 5-17x larger and the
                  Nystroem block is n_rows x n_components x 8 bytes -- Stage 1 at
                  1200 would need 27.7 GB.
-  SKIP_TEST=1    do not predict or score fold 2 at all. Fold 2 gets ONE read, on a
+  SKIP_TEST=1    do not SCORE fold 2. Precisely: Stages 2 and 3 never predict it
+                 and nothing is ever compared against its labels, but Stage 1
+                 still predicts every row (Stage 2 needs fold-0 and fold-1 routes
+                 from one pass) and stage1_prob_test.npy is still written. No
+                 label is read, so the fold stays unread in the sense that
+                 matters -- but the earlier wording here claimed fold 2 was not
+                 predicted at all, which was untrue and would look like a leak to
+                 anyone who found that file. Fold 2 gets ONE read, on a
                  predeclared configuration; anything exploratory after that must be
                  judged on fold 1's tuning half instead, from the *_prob_val.npy
                  arrays. Also removes roughly 40% of the runtime, since the
@@ -671,8 +678,9 @@ if __name__ == "__main__":
         manifest["finished"] = time.strftime("%Y-%m-%d %H:%M:%S")
         with open(f"{OUT}/manifest.json", "w") as f:
             json.dump(manifest, f, indent=2)
-        log("SKIP_TEST: fold 2 never predicted or scored. Judge this run on fold 1's"
-            " tuning half from the *_prob_val.npy arrays.")
+        log("SKIP_TEST: fold 2 never SCORED -- no label of it was read. Stage 1 did"
+            " predict it (stage1_prob_test.npy); Stages 2 and 3 did not. Judge this"
+            " run on fold 1's tuning half from the *_prob_val.npy arrays.")
         log("wrote", f"{OUT}/manifest.json")
         log("DONE")
         raise SystemExit(0)
