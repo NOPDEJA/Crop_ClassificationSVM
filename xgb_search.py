@@ -74,11 +74,23 @@ N_SPLITS = 3
 SCORING = "f1_macro"
 
 # 3 x 2 x 2 x 2 = 24 candidates, matching E4's 24 exactly.
+#
+# E4 searched three axes (C, gamma, n_components) and left everything else at
+# library defaults. This searches four and leaves the rest fixed, which is the
+# same shape of decision, but it raises the question of WHAT the unsearched knobs
+# should be held at -- and the answer must not be an arbitrary choice of ours,
+# because a value we picked would be a hyperparameter of the XGBoost arm selected
+# by the SVM side.
+#
+# So the unsearched knobs are held at the COLLABORATOR'S OWN published values
+# (train_crops.py at f5f1a6a): subsample 0.6, colsample_bytree 0.8, and
+# reg_lambda at XGBoost's own default of 1.0 since he does not set it. The parts
+# of this configuration we did not search are therefore his, not ours.
 GRID = {"max_depth": [4, 8, 12],
         "learning_rate": [0.05, 0.1],
         "n_estimators": [400, 800],
         "min_child_weight": [1, 10]}
-FIXED = dict(subsample=0.8, colsample_bytree=0.8, reg_lambda=1.0,
+FIXED = dict(subsample=0.6, colsample_bytree=0.8, reg_lambda=1.0,
              tree_method="hist", random_state=RANDOM_STATE, device=XGB_DEVICE)
 
 ECON = {2101, 2204, 2205, 2302, 2303, 2403, 2404, 2405, 2407, 2413, 2416, 2419, 2420}

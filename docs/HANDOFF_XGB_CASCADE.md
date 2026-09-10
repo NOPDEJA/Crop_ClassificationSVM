@@ -210,6 +210,31 @@ resolved by this handoff.
    declare it. Record device, thread count and xgboost version in your manifest, which the
    script does automatically.
 
+## 7a. What has and has not been tested, before you spend days on it
+
+Stated plainly so you can plan, and so nothing here is a surprise at hour six.
+
+**Tested.** The SVM path is byte-identical before and after the seam was added, across every
+saved artifact. The XGBoost path runs the whole cascade end to end. The subtype-mass weight
+function reproduces E7's saved 800,000-row vector exactly. The search completes a full
+24-candidate run and writes a config the trainer accepts.
+
+**Not tested: any of it at full scale.** Every run above was `SMOKE=1`, which subsamples to
+500,000 rows. No full-scale XGBoost run of this cascade exists anywhere yet, on either
+machine. Two consequences:
+
+- **Runtime is unmeasured.** What is known: at equal smoke scale XGBoost finished the whole
+  cascade in about 20 seconds at 50 trees where the SVM took about 10 minutes, so the
+  per-model cost is not the worry. The search is: E4's equivalent 72-fit search took roughly
+  13 hours for the SVM at full size, and yours is 5 stages rather than 2. **Run step 1 first
+  and time it** before committing to step 2 overnight.
+- **Memory is unmeasured for your box.** The SVM's chunking constant exists to keep a Nyström
+  block under control and is irrelevant to you; raise `PRED_CHUNK_OVERRIDE` freely. Stage 1
+  fits on roughly 2.9 million rows by 30 features.
+
+If step 1 reveals something we got wrong, tell us before working around it. A workaround on
+your side becomes an uncontrolled difference between the arms.
+
 ## 8. What to send back
 
 - The whole `runs/xgb_e7/` directory, or at minimum `manifest.json`, `report_hard.csv`,
