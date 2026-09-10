@@ -48,9 +48,31 @@ table as if they were. The split scheme is part of an arm's identity because a s
 a property of a model *and* the population it was measured on: two arms split differently
 are not comparable even when every other property matches.
 
+**Cell** — one algorithm applied inside one architecture on one arm, e.g. *XGBoost in
+the routing cascade on `s2_2018_3date`*. An arm says what data was used; a cell says what
+was done with it. Two cells on the same arm and architecture that differ only in
+algorithm are directly comparable; cells on different arms are not, whatever else they
+share.
+
 **Cascade** — a sequence of models where each one only sees the pixels a previous model
 routed to it. Both this project's SVM and the collaborator's XGBoost are cascades, but
 they are *different* cascades and their internal stages do not correspond.
+
+**Routing cascade** — this project's architecture: every pixel is assigned to a branch
+(superclass, then subclass) and a specialist inside that branch names the crop.
+
+**Rejection cascade** — the collaborator's architecture: pixels are removed by successive
+binary filters (water, then buildings) and one flat classifier names the survivors.
+
+**Crossover** — the agreed joint-paper design: each side runs the *other* side's algorithm
+inside its *own* architecture on its *own* arm, and each pair is compared only within
+itself. A crossover pair holds the architecture and the arm fixed, so any difference is
+attributable to the algorithm plus its own preprocessing and tuning.
+
+**Framework rule** — of a cascade: a rule that both cells must follow even though it
+yields different pixels in each, such as *Stage 2 trains on whatever your own Stage 1
+routed to it*. The rule is fixed; the rows it produces are a consequence of the algorithm
+and are recorded, not forced to match.
 
 **Stage** — one model within the cascade. Stage 1 assigns a superclass; Stage 2 assigns
 a subclass within economic crops; Stage 3 assigns the final crop code within a subclass.
